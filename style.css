@@ -1,0 +1,176 @@
+/*
+  style.css — Doggo Prints visual styles
+  version: MVP 0.1
+*/
+
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  font-family: 'JetBrains Mono', monospace;
+  background: #E8E4DC;
+}
+
+.app {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+}
+
+/* ── SIDEBAR ─────────────────────────────────── */
+
+.sidebar {
+  width: 260px;
+  min-width: 260px;
+  height: 100vh;
+  background: #F5F0E8;
+  border-right: 1px solid #D0CCC4;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  overflow-y: auto;
+}
+
+.sidebar-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: 0.08em;
+  color: #2A2A2A;
+  line-height: 1.2;
+  margin-bottom: 32px;
+  text-transform: uppercase;
+}
+
+.section {
+  margin-bottom: 28px;
+}
+
+.section-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-variant: small-caps;
+  letter-spacing: 0.2em;
+  color: #2A2A2A;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+.section-meta {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: #7A7670;
+  margin-top: 6px;
+  letter-spacing: 0.05em;
+}
+
+/* ── BUTTONS ─────────────────────────────────── */
+
+.btn {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: #2A2A2A;
+  background: transparent;
+  border: 1px solid #2A2A2A;
+  border-radius: 0;
+  padding: 6px 10px;
+  cursor: pointer;
+  letter-spacing: 0.05em;
+  transition: background 0.1s, color 0.1s;
+  display: inline-block;
+  width: 100%;
+  text-align: left;
+}
+
+.btn:hover {
+  background: #2A2A2A;
+  color: #F5F0E8;
+}
+
+.btn:active {
+  opacity: 0.85;
+}
+
+.btn-export {
+  margin-top: 8px;
+}
+
+/* ── FORMAT TOGGLE ───────────────────────────── */
+
+.format-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.toggle-btn {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: #7A7670;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 2px 0;
+  letter-spacing: 0.1em;
+  transition: color 0.1s;
+}
+
+.toggle-btn.active {
+  color: #2A2A2A;
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+.toggle-btn:hover {
+  color: #2A2A2A;
+}
+
+.toggle-sep {
+  color: #D0CCC4;
+  font-size: 12px;
+}
+
+/* ── SIDEBAR BOTTOM ──────────────────────────── */
+
+.sidebar-bottom {
+  margin-top: auto;
+  padding-top: 24px;
+  border-top: 1px solid #D0CCC4;
+}
+
+/* ── CANVAS AREA ─────────────────────────────── */
+
+.canvas-area {
+  flex: 1;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #E8E4DC;
+  overflow: hidden;
+}
+
+.canvas-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.canvas-wrapper canvas {
+  display: block;
+  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.18), 0 1px 4px rgba(0, 0, 0, 0.10);
+  max-width: 100%;
+  max-height: 100%;
+  /* p5 sets width/height attrs; we scale via JS */
+}
