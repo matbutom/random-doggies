@@ -1,6 +1,6 @@
 <!--
   index.html — Doggo Prints layout, sidebar, canvas container
-  version: MVP 0.1
+  version: MVP 0.5
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -15,44 +15,68 @@
 </head>
 <body>
   <div class="app">
-    <!-- LEFT SIDEBAR -->
     <aside class="sidebar">
       <div class="sidebar-title">DOGGO<br>PRINTS</div>
 
-      <div class="section">
-        <div class="section-label">PERRITO</div>
-        <button class="btn" id="btn-dogs">[ randomize ]</button>
-        <div class="section-meta" id="meta-dogs">× 4 dogs</div>
+      <div class="mode-row">
+        <button class="toggle-btn mode-toggle active" id="btn-mode-gen">generar</button>
+        <span class="toggle-sep">|</span>
+        <button class="toggle-btn mode-toggle" id="btn-mode-comp">componer</button>
       </div>
 
-      <div class="section">
-        <div class="section-label">FONDO</div>
-        <button class="btn" id="btn-bg">[ randomize ]</button>
-        <div class="section-meta" id="meta-bg">#F5E642 AMARILLO</div>
+      <!-- Generate panel -->
+      <div id="panel-generate">
+        <div class="section">
+          <div class="section-label">PERRITO</div>
+          <button class="btn" id="btn-dogs">[ randomize ]</button>
+          <div class="section-meta" id="meta-dogs">× 1 dog</div>
+        </div>
+
+        <div class="section">
+          <div class="section-label">EFECTOS</div>
+          <button class="btn btn-effect" id="eff-scallop">[ scalloped ]</button>
+        </div>
+
+        <div class="section">
+          <div class="section-label">PÍXELES</div>
+          <div class="slider-row">
+            <input type="range" id="slider-pixel" min="6" max="40" step="1" value="20" />
+          </div>
+          <div class="section-meta" id="meta-pixel">20 columnas</div>
+        </div>
       </div>
 
-      <div class="section">
-        <div class="section-label">RELLENO</div>
-        <button class="btn" id="btn-texture">[ randomize ]</button>
-        <div class="section-meta" id="meta-texture">hatching 45°</div>
+      <!-- Compose panel -->
+      <div id="panel-compose" style="display:none">
+        <div class="section">
+          <div class="section-label">COLOR</div>
+          <div class="color-swatches" id="color-swatches"></div>
+        </div>
+        <div class="section">
+          <div class="section-label">TEMPLATES</div>
+          <div class="template-grid" id="template-grid"></div>
+          <div class="section-meta" style="margin-top:8px">arrastra al canvas</div>
+        </div>
+        <div class="section compose-actions">
+          <button class="btn" id="btn-flip-compose">[ voltear ]</button>
+          <button class="btn btn-export" id="btn-delete-compose">[ eliminar ]</button>
+          <button class="btn btn-export" id="btn-clear-compose">[ limpiar canvas ]</button>
+        </div>
       </div>
 
       <div class="sidebar-bottom">
         <div class="format-toggle">
-          <button class="toggle-btn active" id="btn-a4" data-format="A4">A4</button>
+          <button class="toggle-btn active" id="btn-a4">A4</button>
           <span class="toggle-sep">|</span>
-          <button class="toggle-btn" id="btn-a3" data-format="A3">A3</button>
+          <button class="toggle-btn" id="btn-a3">A3</button>
         </div>
         <button class="btn btn-export" id="btn-png">[ export PNG ]</button>
         <button class="btn btn-export" id="btn-pdf">[ export PDF ]</button>
       </div>
     </aside>
 
-    <!-- CANVAS AREA -->
     <main class="canvas-area">
-      <div class="canvas-wrapper" id="canvas-wrapper">
-        <!-- p5.js canvas injected here -->
-      </div>
+      <div class="canvas-wrapper" id="canvas-wrapper"></div>
     </main>
   </div>
 

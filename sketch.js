@@ -1,804 +1,288 @@
 /*
-  sketch.js — Doggo Prints: grid layout, modular dogs, white+stroke+texture
-  version: MVP 0.2
+  sketch.js — Doggo Prints
+  version: MVP 0.6 — flat color pixel art, guaranteed anatomy
 */
-
-// ── Constants ─────────────────────────────────────────────────────────────────
 
 const FORMATS = {
   A4: { w: 2480, h: 3508 },
   A3: { w: 3508, h: 4961 },
 };
+const CANVAS_BG = '#FFFFFF';
+const PALETTE   = ['#F5C842', '#F57DB0', '#7EC8E3'];
+const BLACK     = '#1A1A1A';
 
-const BG_PALETTE = [
-  { name: 'AMARILLO', hex: '#F5E642' },
-  { name: 'ROSADO',   hex: '#FF6EB4' },
-  { name: 'CELESTE',  hex: '#4DC8F0' },
+// ── HAND-CRAFTED TEMPLATES ──────────────────────────────────────────────────
+// 0=empty · 1=body color · 2=black
+// All designed facing RIGHT; non-symmetric ones get flipped randomly.
+
+const TEMPLATES = [
+
+  // Side walking dog
+  { symmetric: false, grid: [
+    [0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0],
+    [0,1,1,0,0,0,0,0,0,0,0,0,1,1,1,0],
+    [0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
+    [0,0,1,1,1,1,1,1,1,1,1,2,1,1,1,0],
+    [0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0],
+    [0,0,1,0,1,0,0,1,0,1,0,0,0,0,0,0],
+    [0,0,1,0,1,0,0,1,0,1,0,0,0,0,0,0],
+    [0,0,2,0,2,0,0,2,0,2,0,0,0,0,0,0],
+  ]},
+
+  // Front-facing sitting dog
+  { symmetric: true, grid: [
+    [0,1,1,0,0,0,0,0,1,1,0,0],
+    [0,1,1,0,0,0,0,0,1,1,0,0],
+    [1,1,1,1,1,1,1,1,1,1,1,0],
+    [1,1,1,1,1,1,1,1,1,1,1,0],
+    [1,1,2,1,1,1,1,1,2,1,1,0],
+    [1,1,1,1,1,1,1,1,1,1,1,0],
+    [1,1,1,2,1,1,1,2,1,1,1,0],
+    [0,1,1,1,1,1,1,1,1,1,0,0],
+    [0,0,1,1,1,1,1,1,1,0,0,0],
+    [1,1,1,1,1,1,1,1,1,1,1,0],
+    [1,1,1,1,1,1,1,1,1,1,1,0],
+    [1,1,1,1,1,1,1,1,1,1,1,0],
+    [1,1,1,1,1,1,1,1,1,1,1,0],
+    [0,0,1,1,0,0,0,0,1,1,0,0],
+    [0,0,1,1,0,0,0,0,1,1,0,0],
+    [0,0,2,2,0,0,0,0,2,2,0,0],
+  ]},
+
+  // Side sitting dog
+  { symmetric: false, grid: [
+    [0,0,0,0,1,1,0,0,0,0,0,0,0,0],
+    [0,0,0,1,1,1,1,0,0,0,0,0,0,0],
+    [0,0,1,1,1,1,1,1,1,0,0,0,0,0],
+    [0,0,1,1,2,1,1,1,1,0,0,0,0,0],
+    [0,0,1,1,1,1,1,1,1,1,0,0,0,0],
+    [0,0,0,1,1,1,1,1,1,1,1,0,0,0],
+    [0,0,0,0,1,1,1,1,1,0,0,0,0,0],
+    [0,0,1,1,1,1,1,1,1,0,0,0,0,0],
+    [0,1,1,1,1,1,1,1,1,1,0,0,0,0],
+    [0,1,1,1,1,1,1,1,1,1,0,0,0,0],
+    [0,1,1,1,1,1,1,1,1,1,0,0,0,0],
+    [0,0,1,1,1,1,1,1,1,0,0,0,0,0],
+    [0,0,1,1,0,0,0,1,1,0,0,0,0,0],
+    [0,0,1,1,0,0,0,1,1,0,0,0,0,0],
+    [0,0,2,2,0,0,0,2,2,0,0,0,0,0],
+  ]},
+
+  // Minimal blob side dog
+  { symmetric: false, grid: [
+    [0,0,0,1,1,1,0,0,0,0,0,0],
+    [0,0,1,1,1,1,1,0,0,0,0,0],
+    [0,0,1,2,1,1,1,1,0,0,0,0],
+    [0,0,1,1,1,1,1,1,1,0,0,0],
+    [1,1,1,1,1,1,1,1,1,0,0,0],
+    [1,1,1,1,1,1,1,1,1,0,0,0],
+    [0,1,1,1,1,1,1,1,0,0,0,0],
+    [0,1,0,1,0,0,1,0,0,0,0,0],
+    [0,2,0,2,0,0,2,0,0,0,0,0],
+  ]},
+
+  // Simple front standing dog
+  { symmetric: true, grid: [
+    [0,0,1,0,0,0,0,1,0,0],
+    [0,1,1,1,0,0,1,1,1,0],
+    [1,1,1,1,1,1,1,1,1,0],
+    [1,1,2,1,1,1,2,1,1,0],
+    [1,1,1,1,1,1,1,1,1,0],
+    [1,1,1,2,1,1,2,1,1,0],
+    [0,1,1,1,1,1,1,1,0,0],
+    [0,1,1,1,1,1,1,1,0,0],
+    [0,1,1,1,1,1,1,1,0,0],
+    [0,1,1,1,1,1,1,1,0,0],
+    [0,1,0,1,0,0,1,0,1,0],
+    [0,1,0,1,0,0,1,0,1,0],
+    [0,2,0,2,0,0,2,0,2,0],
+  ]},
+
+  // ── Cross-stitch / knitwear style (2 colors: 1=body · 2=black) ───────────
+  // Flat silhouettes, square ear nubs, 4 stub legs, short tail — inspired
+  // by repeating tile pixel art patterns.
+
+  // Side walk — 4 evenly-spaced legs
+  { symmetric: false, grid: [
+    [0,0,0,0,0,0,0,0,1,0,1,0,0],
+    [0,1,0,0,0,0,0,1,1,1,1,1,0],
+    [0,1,0,0,0,0,1,1,2,1,1,0,0],
+    [0,0,1,1,1,1,1,1,1,1,0,0,0],
+    [0,0,1,1,1,1,1,1,1,0,0,0,0],
+    [0,0,1,0,1,0,1,0,1,0,0,0,0],
+    [0,0,1,0,1,0,1,0,1,0,0,0,0],
+  ]},
+
+  // Side trot — legs staggered (walking motion)
+  { symmetric: false, grid: [
+    [0,1,0,0,0,0,0,0,1,0,1,0,0],
+    [0,1,0,0,0,0,0,1,1,1,1,1,0],
+    [0,0,0,0,0,0,1,1,2,1,1,0,0],
+    [0,0,1,1,1,1,1,1,1,1,0,0,0],
+    [0,0,1,1,1,1,1,1,0,0,0,0,0],
+    [0,0,1,0,0,1,0,0,1,0,0,0,0],
+    [0,0,0,1,0,0,1,0,0,0,0,0,0],
+  ]},
+
+  // Compact side — small body, big head energy
+  { symmetric: false, grid: [
+    [0,0,0,0,0,0,1,0,1,0,0,0],
+    [0,1,0,0,0,1,1,1,1,1,0,0],
+    [0,1,0,0,1,1,2,1,1,0,0,0],
+    [0,0,1,1,1,1,1,1,0,0,0,0],
+    [0,0,1,1,1,1,1,0,0,0,0,0],
+    [0,0,1,0,1,0,1,0,0,0,0,0],
+    [0,0,1,0,1,0,1,0,0,0,0,0],
+  ]},
+
+  // Front sitting — two square ear nubs, symmetrical
+  { symmetric: true, grid: [
+    [0,0,1,1,0,0,0,0,1,1,0,0],
+    [0,1,1,1,1,1,1,1,1,1,1,0],
+    [1,1,1,2,1,1,1,1,2,1,1,0],
+    [1,1,1,1,1,1,1,1,1,1,1,0],
+    [1,1,1,1,2,1,1,2,1,1,1,0],
+    [0,1,1,1,1,1,1,1,1,1,0,0],
+    [0,1,1,1,1,1,1,1,1,1,0,0],
+    [0,0,1,1,0,0,0,0,1,1,0,0],
+    [0,0,1,1,0,0,0,0,1,1,0,0],
+    [0,0,2,2,0,0,0,0,2,2,0,0],
+  ]},
+
+  // ── Cute detailed templates (3 colors: 1=body · 2=black · 3=dark-body) ──
+
+  // Cute side-standing dog
+  { symmetric: false, grid: [
+    [0,0,3,0,0,0,0,0,0,0,0,0,0,3,2,0],
+    [0,0,1,3,0,0,0,0,0,0,0,0,1,1,3,0],
+    [0,0,1,0,0,0,0,0,0,0,0,1,1,1,1,0],
+    [0,0,0,0,0,0,0,0,0,0,1,1,2,1,1,0],
+    [0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1],
+    [0,0,0,1,1,1,1,1,1,1,1,1,1,1,3,0],
+    [0,0,3,3,1,1,1,1,1,1,1,1,1,0,0,0],
+    [0,0,0,0,1,1,1,1,1,1,1,0,0,0,0,0],
+    [0,0,0,3,0,3,0,0,3,0,3,0,0,0,0,0],
+    [0,0,0,1,0,1,0,0,1,0,1,0,0,0,0,0],
+    [0,0,0,1,0,1,0,0,1,0,1,0,0,0,0,0],
+    [0,0,0,2,0,2,0,0,2,0,2,0,0,0,0,0],
+  ]},
+
+  // Cute front-sitting dog
+  { symmetric: true, grid: [
+    [0,0,3,3,0,0,0,0,3,3,0,0],
+    [0,3,1,3,0,0,0,0,3,1,3,0],
+    [0,1,1,1,1,1,1,1,1,1,1,0],
+    [1,1,1,1,1,1,1,1,1,1,1,0],
+    [1,1,2,1,1,1,1,1,2,1,1,0],
+    [1,1,1,1,1,1,1,1,1,1,1,0],
+    [1,1,1,2,2,1,2,2,1,1,1,0],
+    [0,1,1,1,1,1,1,1,1,1,0,0],
+    [0,3,3,1,1,1,1,1,3,3,0,0],
+    [1,1,1,1,1,1,1,1,1,1,1,0],
+    [1,1,1,1,1,1,1,1,1,1,1,0],
+    [3,1,1,1,1,1,1,1,1,1,3,0],
+    [3,1,1,1,1,1,1,1,1,1,3,0],
+    [0,0,3,1,0,0,0,0,1,3,0,0],
+    [0,0,1,1,0,0,0,0,1,1,0,0],
+    [0,0,2,2,0,0,0,0,2,2,0,0],
+  ]},
+
+  // Cute side-sitting dog
+  { symmetric: false, grid: [
+    [0,0,0,0,0,3,2,0,0,0,0,0,0,0],
+    [0,0,0,0,3,1,3,0,0,0,0,0,0,0],
+    [0,0,0,1,1,1,1,1,0,0,0,0,0,0],
+    [0,0,0,1,2,1,1,1,1,0,0,0,0,0],
+    [0,0,0,1,1,1,1,1,1,1,0,0,0,0],
+    [0,0,0,0,1,1,1,1,1,1,3,0,0,0],
+    [0,0,0,0,0,1,1,1,2,2,0,0,0,0],
+    [0,0,0,3,3,1,1,1,1,0,0,0,0,0],
+    [0,0,1,1,1,1,1,1,1,1,0,0,0,0],
+    [0,0,1,1,1,1,1,1,1,1,0,0,0,0],
+    [0,0,1,1,1,1,1,1,1,1,0,0,0,0],
+    [0,0,3,1,1,1,1,1,1,3,0,0,0,0],
+    [0,0,0,3,1,0,0,3,1,0,0,0,0,0],
+    [0,0,0,1,1,0,0,1,1,0,0,0,0,0],
+    [0,0,0,2,2,0,0,2,2,0,0,0,0,0],
+  ]},
+
+  // Cute running dog
+  { symmetric: false, grid: [
+    [0,0,3,0,0,0,0,0,0,0,0,0,0,3,2,0],
+    [0,3,1,0,0,0,0,0,0,0,0,0,1,1,3,0],
+    [0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0],
+    [0,0,0,0,0,0,0,0,0,0,1,1,2,1,1,0],
+    [0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1],
+    [0,0,0,0,1,1,1,1,1,1,1,1,1,3,0,0],
+    [0,0,3,1,1,1,1,1,1,1,1,1,0,0,0,0],
+    [0,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0],
+    [1,1,0,0,0,0,1,1,0,0,0,0,0,0,0,0],
+    [1,3,0,0,0,0,1,3,0,0,0,0,0,0,0,0],
+    [2,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0],
+  ]},
+
+  // ── Red accent templates (4 colors: 1=body · 2=black · 3=dark · 4=red) ──
+
+  // Chunky dark dog with red collar — side view
+  { symmetric: false, grid: [
+    [0,0,0,0,0,0,0,0,0,0,0,0,3,3,0,0],
+    [0,3,0,0,0,0,0,0,0,0,0,3,3,3,3,0],
+    [0,3,3,0,0,0,0,0,0,0,3,3,2,3,3,0],
+    [3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,0],
+    [0,3,3,3,3,3,3,3,3,4,4,3,3,3,3,0],
+    [0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,0],
+    [0,0,3,3,3,3,3,3,3,3,3,3,3,3,0,0],
+    [0,0,3,3,0,3,3,0,0,3,3,0,3,3,0,0],
+    [0,0,3,3,0,3,3,0,0,3,3,0,3,3,0,0],
+    [0,0,2,2,0,2,2,0,0,2,2,0,2,2,0,0],
+  ]},
+
+  // Expressive dog with black muzzle and red bow — front sitting
+  { symmetric: true, grid: [
+    [0,0,1,1,0,0,0,1,1,0,0,0],
+    [0,1,1,1,0,0,0,1,1,1,0,0],
+    [0,1,1,1,1,1,1,1,1,1,0,0],
+    [1,1,1,1,1,1,1,1,1,1,1,0],
+    [1,1,2,1,1,1,1,1,2,1,1,0],
+    [1,1,1,1,1,1,1,1,1,1,1,0],
+    [0,1,2,2,2,2,2,2,2,2,1,0],
+    [0,0,2,2,2,2,2,2,2,0,0,0],
+    [0,4,4,4,0,4,0,4,4,4,0,0],
+    [0,0,1,1,1,1,1,1,1,0,0,0],
+    [0,1,1,1,1,1,1,1,1,1,0,0],
+    [0,1,1,1,1,1,1,1,1,1,0,0],
+    [0,1,1,1,1,1,1,1,1,1,0,0],
+    [0,1,1,1,1,1,1,1,1,1,0,0],
+    [0,0,1,1,0,0,0,1,1,0,0,0],
+    [0,0,1,1,0,0,0,1,1,0,0,0],
+    [0,0,2,2,0,0,0,2,2,0,0,0],
+  ]},
+
 ];
-
-const TEXTURES = [
-  { id: 'HATCHING_45', label: 'hatching 45°' },
-  { id: 'CROSSHATCH',  label: 'crosshatch' },
-  { id: 'DOTS',        label: 'dots' },
-  { id: 'BITMAP',      label: 'bitmap noise' },
-  { id: 'WORDS',       label: 'words (woof)' },
-  { id: 'NONE',        label: 'none (hollow)' },
-];
-
-const FILLER_TYPES = ['DIAMONDS', 'CIRCLES', 'BOLD_TEXT', 'ZIGZAG', 'EYE', 'STARBURST'];
-
-// ── State ─────────────────────────────────────────────────────────────────────
 
 const state = {
-  format:   'A4',
-  bgColor:  '#F5E642',
-  bgName:   'AMARILLO',
-  texture:  'HATCHING_45',
-  texLabel: 'hatching 45°',
-  dogs:     [],
-  layout:   null,
+  format: 'A4',
+  seed: Math.floor(Math.random() * 1e9),
+  dogs: [],
+  pixelCols: 20,
   needsRedraw: true,
+  effects: { SCALLOPED: false },
+  mode: 'generate', // 'generate' | 'compose'
 };
 
-let pg;
-let p5instance;
-
-// ── p5 bootstrap ──────────────────────────────────────────────────────────────
-
-new p5(function (p) {
-  p5instance = p;
-
-  p.setup = function () {
-    const dims = scaledDims();
-    const cnv  = p.createCanvas(dims.w, dims.h);
-    cnv.parent('canvas-wrapper');
-
-    const fmt = FORMATS[state.format];
-    pg = p.createGraphics(fmt.w, fmt.h);
-
-    randomizeBackground();
-    state.texture  = 'HATCHING_45';
-    state.texLabel = 'hatching 45°';
-    updateMeta('meta-texture', state.texLabel);
-    randomizeDogs();
-
-    wireUI(p);
-    p.noLoop();
-  };
-
-  p.draw = function () {
-    if (!state.needsRedraw) return;
-    state.needsRedraw = false;
-    renderFull(p);
-  };
-});
-
-// ── Dimension helpers ─────────────────────────────────────────────────────────
-
-function scaledDims() {
-  const fmt  = FORMATS[state.format];
-  const maxW = window.innerWidth  - 262 - 48;
-  const maxH = window.innerHeight - 48;
-  const scale = Math.min(maxW / fmt.w, maxH / fmt.h);
-  return { w: Math.floor(fmt.w * scale), h: Math.floor(fmt.h * scale) };
-}
-
-function cmToPx(cm, canvasW) {
-  // 1 cm = 118 px at 300 dpi on A4 width (2480 px)
-  return Math.round(canvasW * (cm * 118 / 2480));
-}
-
-// ── Grid layout ───────────────────────────────────────────────────────────────
-
-function computeLayout(dogCount, canvasW, canvasH) {
-  const margin   = cmToPx(1.0, canvasW);
-  const innerPad = cmToPx(0.4, canvasW);
-
-  let cols, rows;
-  if (dogCount <= 4) { cols = 2; rows = 2; }
-  else               { cols = 2; rows = 3; }
-
-  const usableW = canvasW - margin * 2;
-  const usableH = canvasH - margin * 2;
-  const cellW   = usableW / cols;
-  const cellH   = usableH / rows;
-
-  const totalCells  = cols * rows;
-  const fillerCount = totalCells - dogCount;
-
-  const assignments = [
-    ...Array(dogCount).fill('dog'),
-    ...Array(fillerCount).fill('filler'),
-  ];
-  fisherYatesShuffle(assignments);
-
-  // Each filler gets a stable random type
-  const fillerRng = mulberry32(Math.floor(Math.random() * 99999));
-  const cells = [];
-  for (let row = 0; row < rows; row++) {
-    for (let col = 0; col < cols; col++) {
-      const idx = row * cols + col;
-      const gx  = margin + col * cellW;
-      const gy  = margin + row * cellH;
-      cells.push({
-        gx, gy, cellW, cellH,
-        x:  gx + innerPad,
-        y:  gy + innerPad,
-        w:  cellW - innerPad * 2,
-        h:  cellH - innerPad * 2,
-        cx: gx + cellW / 2,
-        cy: gy + cellH / 2,
-        type:       assignments[idx],
-        fillerType: FILLER_TYPES[Math.floor(fillerRng() * FILLER_TYPES.length)],
-      });
-    }
-  }
-  return { cells, cols, rows, margin, cellW, cellH };
-}
-
-function fisherYatesShuffle(arr) {
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-}
-
-// ── Render pipeline ───────────────────────────────────────────────────────────
-
-function renderFull(p) {
-  const fmt = FORMATS[state.format];
-  pg.background(state.bgColor);
-
-  const layout = state.layout;
-  if (!layout) return;
-
-  let dogIdx = 0;
-  for (const cell of layout.cells) {
-    if (cell.type === 'dog') {
-      drawDogInCell(pg, cell, state.dogs[dogIdx], state.texture);
-      dogIdx++;
-    } else {
-      drawFillerInCell(pg, cell, state.texture);
-    }
-  }
-
-  const dims = scaledDims();
-  p.resizeCanvas(dims.w, dims.h);
-  p.image(pg, 0, 0, dims.w, dims.h);
-}
-
-// ── Dog generation ────────────────────────────────────────────────────────────
-
-function randomizeDogs() {
-  const count = Math.floor(Math.random() * 5) + 2; // 2–6
-  const fmt   = FORMATS[state.format];
-  state.layout = computeLayout(count, fmt.w, fmt.h);
-
-  const poses = ['side', 'front', 'sitting'];
-  state.dogs  = [];
-  for (let i = 0; i < count; i++) {
-    state.dogs.push({
-      pose:       poses[Math.floor(Math.random() * poses.length)],
-      facing:     Math.random() > 0.5 ? 1 : -1,
-      rotation:   (Math.random() - 0.5) * 14,
-      earType:    Math.random() > 0.5 ? 'floppy' : 'pointy',
-      tailType:   Math.random() > 0.5 ? 'curl' : 'straight',
-      hasCollar:  Math.random() < 0.35,
-      hasSpots:   Math.random() < 0.35,
-      hasTongue:  Math.random() < 0.38,
-      spotSeed:   Math.random() * 99999 | 0,
-      bodyAspect: 0.85 + Math.random() * 0.4,
-      legLen:     0.75 + Math.random() * 0.45,
-      headSize:   0.9  + Math.random() * 0.28,
-    });
-  }
-
-  updateMeta('meta-dogs', `× ${count} dog${count !== 1 ? 's' : ''}`);
-  state.needsRedraw = true;
-  if (p5instance) p5instance.redraw();
-}
-
-// ── Draw dog in cell ──────────────────────────────────────────────────────────
-
-function drawDogInCell(g, cell, dog, texture) {
-  const { cx, cy, w, h } = cell;
-  const sw = Math.max(4, Math.min(w, h) * 0.024);
-  g.push();
-  g.strokeWeight(sw);
-  g.stroke('#1A1A1A');
-  g.translate(cx, cy);
-  g.rotate(g.radians(dog.rotation));
-
-  const uw = w * 0.88;
-  const uh = h * 0.88;
-
-  if      (dog.pose === 'side')    drawDogSide(g, uw, uh, dog, texture, sw);
-  else if (dog.pose === 'front')   drawDogFront(g, uw, uh, dog, texture, sw);
-  else if (dog.pose === 'sitting') drawDogSitting(g, uw, uh, dog, texture, sw);
-
-  g.pop();
-}
-
-// ── Pose: SIDE ────────────────────────────────────────────────────────────────
-
-function drawDogSide(g, uw, uh, dog, texture, sw) {
-  const f   = dog.facing;
-  const bw  = uw * 0.64 * dog.bodyAspect;
-  const bh  = uh * 0.30;
-  const by  = uh * 0.04;
-
-  const hr  = bh * 0.70 * dog.headSize;
-  const hx  = f * (bw * 0.38);
-  const hy  = by - bh * 0.44 - hr * 0.55;
-
-  const legH  = uh * 0.28 * dog.legLen;
-  const legW  = sw * 2.8;
-  const legY0 = by + bh * 0.46;
-
-  // tail (drawn first — behind body)
-  drawTailShape(g, -f * bw * 0.44, by - bh * 0.05, f, bh, dog.tailType, sw);
-
-  // back legs
-  drawLeg(g, -f * bw * 0.20, legY0, legW, legH, sw);
-  drawLeg(g, -f * bw * 0.34, legY0, legW, legH, sw);
-
-  // body
-  drawFilledEllipse(g, 0, by, bw, bh, texture, sw);
-
-  // neck
-  const nw = hr * 0.72, nh = bh * 0.32;
-  drawFilledRect(g, hx - f * nw * 0.35 - nw / 2, by - bh * 0.44, nw, nh, texture, sw);
-
-  // head
-  drawFilledEllipse(g, hx, hy, hr * 2.1, hr * 1.95, texture, sw);
-
-  // ear
-  drawEarSide(g, hx, hy, hr, dog.earType, f, sw, texture);
-
-  // front legs
-  drawLeg(g, f * bw * 0.22, legY0, legW, legH, sw);
-  drawLeg(g, f * bw * 0.10, legY0, legW, legH, sw);
-
-  // face
-  drawFaceSide(g, hx, hy, hr, f, dog.hasTongue, sw);
-
-  if (dog.hasCollar) drawCollarSide(g, hx - f * hr * 0.35, by - bh * 0.32, hr, f, sw);
-  if (dog.hasSpots)  drawSpots(g, 0, by, bw * 0.65, bh * 0.72, dog.spotSeed, sw);
-}
-
-// ── Pose: FRONT ───────────────────────────────────────────────────────────────
-
-function drawDogFront(g, uw, uh, dog, texture, sw) {
-  const bw  = uw * 0.52;
-  const bh  = uh * 0.38;
-  const by  = uh * 0.10;
-
-  const hr  = bw * 0.42 * dog.headSize;
-  const hy  = by - bh * 0.54 - hr * 0.45;
-
-  const legH  = uh * 0.28 * dog.legLen;
-  const legW  = bw * 0.14;
-  const legY0 = by + bh * 0.46;
-
-  // body
-  drawFilledEllipse(g, 0, by, bw, bh, texture, sw);
-
-  // neck
-  const nw = bw * 0.3, nh = bh * 0.2;
-  drawFilledRect(g, -nw / 2, by - bh * 0.5, nw, nh, texture, sw);
-
-  // head
-  drawFilledEllipse(g, 0, hy, hr * 2.1, hr * 2.0, texture, sw);
-
-  // ears
-  drawEarsFront(g, 0, hy, hr, dog.earType, sw, texture);
-
-  // front legs
-  drawLeg(g, -bw * 0.20, legY0, legW, legH, sw);
-  drawLeg(g,  bw * 0.20, legY0, legW, legH, sw);
-
-  // tail peek
-  g.push(); g.noFill(); g.strokeWeight(sw);
-  g.beginShape();
-  g.vertex(bw * 0.44, by - bh * 0.08);
-  g.bezierVertex(bw * 0.68, by - bh * 0.5, bw * 0.78, by - bh * 0.1, bw * 0.70, by + bh * 0.3);
-  g.endShape();
-  g.pop();
-
-  // face
-  drawFaceFront(g, 0, hy, hr, dog.hasTongue, sw);
-
-  if (dog.hasCollar) drawCollarFront(g, 0, by - bh * 0.44, bw * 0.48, sw);
-  if (dog.hasSpots)  drawSpots(g, 0, by, bw * 0.68, bh * 0.68, dog.spotSeed, sw);
-}
-
-// ── Pose: SITTING ─────────────────────────────────────────────────────────────
-
-function drawDogSitting(g, uw, uh, dog, texture, sw) {
-  const tw  = uw * 0.40;
-  const th  = uh * 0.28;
-  const ty  = uh * 0.00;
-
-  const hw  = uw * 0.38;
-  const hh  = uh * 0.32;
-  const hcy = ty + th * 0.65;
-
-  // haunches
-  drawFilledEllipse(g, -uw * 0.27, hcy, hw, hh, texture, sw);
-  drawFilledEllipse(g,  uw * 0.27, hcy, hw, hh, texture, sw);
-
-  // torso
-  drawFilledEllipse(g, 0, ty, tw, th, texture, sw);
-
-  // front legs
-  const legH  = uh * 0.24 * dog.legLen;
-  const legW  = tw * 0.20;
-  const legY0 = ty + th * 0.42;
-  drawLeg(g, -tw * 0.20, legY0, legW, legH, sw);
-  drawLeg(g,  tw * 0.20, legY0, legW, legH, sw);
-
-  // neck + head
-  const hr  = uw * 0.23 * dog.headSize;
-  const hy  = ty - th * 0.6 - hr * 0.6;
-  const nw  = tw * 0.36, nh = th * 0.28;
-  drawFilledRect(g, -nw / 2, ty - th * 0.5, nw, nh, texture, sw);
-  drawFilledEllipse(g, 0, hy, hr * 2.1, hr * 2.0, texture, sw);
-
-  // ears
-  drawEarsFront(g, 0, hy, hr, dog.earType, sw, texture);
-
-  // tail
-  g.push(); g.noFill(); g.strokeWeight(sw);
-  g.beginShape();
-  g.vertex(uw * 0.38, hcy);
-  g.bezierVertex(uw * 0.62, hcy - hh * 0.7, uw * 0.58, hcy - hh * 1.4, uw * 0.32, hcy - hh * 1.2);
-  g.endShape();
-  g.pop();
-
-  // face
-  drawFaceFront(g, 0, hy, hr, dog.hasTongue, sw);
-
-  if (dog.hasCollar) drawCollarFront(g, 0, ty - th * 0.44, tw * 0.44, sw);
-  if (dog.hasSpots)  drawSpots(g, 0, ty, tw * 0.65, th * 0.65, dog.spotSeed, sw);
-}
-
-// ── Shape parts ───────────────────────────────────────────────────────────────
-
-function drawLeg(g, lx, ly, lw, lh, sw) {
-  g.push();
-  g.fill(255); g.strokeWeight(sw);
-  g.rect(lx - lw / 2, ly, lw, lh);
-  // paw
-  g.ellipse(lx, ly + lh + lw * 0.35, lw * 1.5, lw * 0.9);
-  g.pop();
-}
-
-function drawTailShape(g, tx, ty, f, bh, tailType, sw) {
-  g.push(); g.noFill(); g.strokeWeight(sw * 0.85);
-  if (tailType === 'curl') {
-    g.beginShape();
-    g.vertex(tx, ty);
-    g.bezierVertex(
-      tx - f * bh * 0.9, ty - bh * 1.0,
-      tx - f * bh * 1.5, ty - bh * 0.35,
-      tx - f * bh * 1.0, ty + bh * 0.22
-    );
-    g.endShape();
-  } else {
-    g.beginShape();
-    g.vertex(tx, ty);
-    g.bezierVertex(
-      tx - f * bh * 0.25, ty - bh * 0.65,
-      tx - f * bh * 0.45, ty - bh * 1.15,
-      tx - f * bh * 0.28, ty - bh * 1.4
-    );
-    g.endShape();
-  }
-  g.pop();
-}
-
-// ── Ear helpers ───────────────────────────────────────────────────────────────
-
-function drawEarSide(g, hx, hy, hr, earType, f, sw, texture) {
-  g.push(); g.strokeWeight(sw);
-  if (earType === 'floppy') {
-    const ex = hx + f * hr * 0.45;
-    const ey = hy + hr * 0.28;
-    drawFilledEllipseTransformed(g, ex, ey, hr * 0.52, hr * 1.05, f * 22, texture, sw);
-  } else {
-    g.fill(255);
-    g.triangle(
-      hx + f * hr * 0.05, hy - hr * 0.55,
-      hx + f * hr * 0.72, hy - hr * 0.52,
-      hx + f * hr * 0.40, hy - hr * 1.5
-    );
-  }
-  g.pop();
-}
-
-function drawEarsFront(g, hx, hy, hr, earType, sw, texture) {
-  g.push(); g.strokeWeight(sw);
-  if (earType === 'floppy') {
-    drawFilledEllipseTransformed(g, hx - hr * 0.78, hy + hr * 0.15, hr * 0.52, hr * 1.05, -22, texture, sw);
-    drawFilledEllipseTransformed(g, hx + hr * 0.78, hy + hr * 0.15, hr * 0.52, hr * 1.05,  22, texture, sw);
-  } else {
-    g.fill(255);
-    g.triangle(hx - hr * 0.8, hy - hr * 0.48, hx - hr * 0.15, hy - hr * 0.62, hx - hr * 0.47, hy - hr * 1.6);
-    g.triangle(hx + hr * 0.8, hy - hr * 0.48, hx + hr * 0.15, hy - hr * 0.62, hx + hr * 0.47, hy - hr * 1.6);
-  }
-  g.pop();
-}
-
-// Draws a rotated filled ellipse (for floppy ears)
-function drawFilledEllipseTransformed(g, cx, cy, ew, eh, angleDeg, texture, sw) {
-  // white fill
-  g.push(); g.fill(255); g.noStroke();
-  g.translate(cx, cy); g.rotate(g.radians(angleDeg));
-  g.ellipse(0, 0, ew, eh);
-  g.pop();
-
-  // texture
-  if (texture !== 'NONE') {
-    g.push();
-    g.drawingContext.save();
-    g.translate(cx, cy); g.rotate(g.radians(angleDeg));
-    // clip in rotated local space
-    g.drawingContext.beginPath();
-    g.drawingContext.ellipse(0, 0, ew / 2, eh / 2, 0, 0, Math.PI * 2);
-    g.drawingContext.clip();
-    drawTexturePattern(g, -ew / 2, -eh / 2, ew, eh, texture);
-    g.drawingContext.restore();
-    g.pop();
-  }
-
-  // outline
-  g.push(); g.noFill(); g.strokeWeight(sw);
-  g.translate(cx, cy); g.rotate(g.radians(angleDeg));
-  g.ellipse(0, 0, ew, eh);
-  g.pop();
-}
-
-// ── Face helpers ──────────────────────────────────────────────────────────────
-
-function drawFaceSide(g, hx, hy, hr, f, hasTongue, sw) {
-  // eye
-  g.push(); g.fill('#1A1A1A'); g.noStroke();
-  const er = hr * 0.17;
-  g.circle(hx + f * hr * 0.18, hy - hr * 0.18, er * 2);
-  g.fill(255);
-  g.circle(hx + f * hr * 0.23, hy - hr * 0.24, er * 0.52);
-  g.pop();
-
-  // nose
-  g.push(); g.fill('#1A1A1A'); g.noStroke();
-  g.circle(hx + f * hr * 0.74, hy + hr * 0.05, hr * 0.24);
-  g.pop();
-
-  // mouth
-  g.push(); g.noFill(); g.strokeWeight(sw * 0.7);
-  g.arc(hx + f * hr * 0.5, hy + hr * 0.22, hr * 0.55, hr * 0.42, 0, g.PI * 0.75);
-  g.pop();
-
-  if (hasTongue) {
-    g.push(); g.fill('#FF6EB4'); g.strokeWeight(sw * 0.65);
-    g.ellipse(hx + f * hr * 0.58, hy + hr * 0.55, hr * 0.30, hr * 0.42);
-    g.pop();
-  }
-}
-
-function drawFaceFront(g, hx, hy, hr, hasTongue, sw) {
-  const eo  = hr * 0.38;
-  const er  = hr * 0.19;
-
-  // eyes
-  g.push(); g.fill('#1A1A1A'); g.noStroke();
-  g.circle(hx - eo, hy - hr * 0.12, er * 2);
-  g.circle(hx + eo, hy - hr * 0.12, er * 2);
-  g.fill(255);
-  g.circle(hx - eo + er * 0.38, hy - hr * 0.20, er * 0.55);
-  g.circle(hx + eo + er * 0.38, hy - hr * 0.20, er * 0.55);
-  g.pop();
-
-  // nose
-  g.push(); g.fill('#1A1A1A'); g.strokeWeight(sw * 0.55);
-  const nw = hr * 0.44, nh = hr * 0.28;
-  g.ellipse(hx, hy + hr * 0.22, nw, nh);
-  g.fill(50);
-  g.ellipse(hx - nw * 0.22, hy + hr * 0.22, nw * 0.24, nh * 0.55);
-  g.ellipse(hx + nw * 0.22, hy + hr * 0.22, nw * 0.24, nh * 0.55);
-  g.pop();
-
-  // mouth
-  g.push(); g.noFill(); g.strokeWeight(sw * 0.7);
-  g.line(hx, hy + hr * 0.40, hx - hr * 0.22, hy + hr * 0.58);
-  g.line(hx, hy + hr * 0.40, hx + hr * 0.22, hy + hr * 0.58);
-  g.pop();
-
-  if (hasTongue) {
-    g.push(); g.fill('#FF6EB4'); g.strokeWeight(sw * 0.65);
-    g.ellipse(hx, hy + hr * 0.74, hr * 0.33, hr * 0.46);
-    g.pop();
-  }
-}
-
-// ── Collar / spots ────────────────────────────────────────────────────────────
-
-function drawCollarSide(g, cx, cy, hr, f, sw) {
-  g.push(); g.fill(255); g.strokeWeight(sw * 0.8);
-  const cw = hr * 0.9, ch = hr * 0.22;
-  g.rect(cx - cw / 2, cy - ch / 2, cw, ch);
-  g.circle(cx + f * cw * 0.08, cy + ch * 0.9, ch * 1.1);
-  g.pop();
-}
-
-function drawCollarFront(g, cx, cy, cw, sw) {
-  g.push(); g.fill(255); g.strokeWeight(sw * 0.8);
-  const ch = cw * 0.2;
-  g.rect(cx - cw / 2, cy, cw, ch);
-  g.circle(cx, cy + ch + ch * 0.55, ch * 1.05);
-  g.pop();
-}
-
-function drawSpots(g, cx, cy, bw, bh, seed, sw) {
-  const rng = mulberry32(seed);
-  const n   = 2 + Math.floor(rng() * 3);
-  g.push(); g.fill('#1A1A1A'); g.noStroke();
-  for (let i = 0; i < n; i++) {
-    const sx = cx + (rng() - 0.5) * bw;
-    const sy = cy + (rng() - 0.5) * bh;
-    const sr = bw * 0.038 + rng() * bw * 0.048;
-    g.circle(sx, sy, sr * 2);
-  }
-  g.pop();
-}
-
-// ── Filled shape helpers (white + texture + stroke) ───────────────────────────
-
-function drawFilledEllipse(g, cx, cy, ew, eh, texture, sw) {
-  g.push(); g.fill(255); g.noStroke();
-  g.ellipse(cx, cy, ew, eh);
-  g.pop();
-
-  if (texture !== 'NONE') {
-    g.push();
-    g.drawingContext.save();
-    g.drawingContext.beginPath();
-    g.drawingContext.ellipse(cx, cy, ew / 2, eh / 2, 0, 0, Math.PI * 2);
-    g.drawingContext.clip();
-    drawTexturePattern(g, cx - ew / 2, cy - eh / 2, ew, eh, texture);
-    g.drawingContext.restore();
-    g.pop();
-  }
-
-  g.push(); g.noFill(); g.strokeWeight(sw);
-  g.ellipse(cx, cy, ew, eh);
-  g.pop();
-}
-
-function drawFilledRect(g, rx, ry, rw, rh, texture, sw) {
-  g.push(); g.fill(255); g.noStroke();
-  g.rect(rx, ry, rw, rh);
-  g.pop();
-
-  if (texture !== 'NONE') {
-    g.push();
-    g.drawingContext.save();
-    g.drawingContext.beginPath();
-    g.drawingContext.rect(rx, ry, rw, rh);
-    g.drawingContext.clip();
-    drawTexturePattern(g, rx, ry, rw, rh, texture);
-    g.drawingContext.restore();
-    g.pop();
-  }
-
-  g.push(); g.noFill(); g.strokeWeight(sw);
-  g.rect(rx, ry, rw, rh);
-  g.pop();
-}
-
-// ── Filler elements ───────────────────────────────────────────────────────────
-
-function drawFillerInCell(g, cell, texture) {
-  const { cx, cy, w, h, fillerType } = cell;
-  const sw = Math.max(4, Math.min(w, h) * 0.020);
-  g.strokeWeight(sw);
-  g.stroke('#1A1A1A');
-
-  if      (fillerType === 'DIAMONDS')  drawFillerDiamonds(g, cx, cy, w, h, sw, texture);
-  else if (fillerType === 'CIRCLES')   drawFillerCircles(g, cx, cy, w, h, sw, texture);
-  else if (fillerType === 'BOLD_TEXT') drawFillerBoldText(g, cx, cy, w, h, sw);
-  else if (fillerType === 'ZIGZAG')    drawFillerZigzag(g, cx, cy, w, h, sw);
-  else if (fillerType === 'EYE')       drawFillerEye(g, cx, cy, w, h, sw, texture);
-  else if (fillerType === 'STARBURST') drawFillerStarburst(g, cx, cy, w, h, sw);
-}
-
-function drawFillerDiamonds(g, cx, cy, w, h, sw, texture) {
-  const cols = 3, rows = 4;
-  const dSize = Math.min(w / cols, h / rows) * 0.68;
-  for (let col = 0; col < cols; col++) {
-    for (let row = 0; row < rows; row++) {
-      const dx = cx - w / 2 + (col + 0.5) * (w / cols);
-      const dy = cy - h / 2 + (row + 0.5) * (h / rows);
-      g.push(); g.translate(dx, dy); g.rotate(g.radians(45));
-      g.fill(255); g.noStroke();
-      g.rect(-dSize / 2, -dSize / 2, dSize, dSize);
-      if (texture !== 'NONE') {
-        g.drawingContext.save();
-        g.drawingContext.beginPath();
-        g.drawingContext.rect(-dSize / 2, -dSize / 2, dSize, dSize);
-        g.drawingContext.clip();
-        drawTexturePattern(g, -dSize / 2, -dSize / 2, dSize, dSize, texture);
-        g.drawingContext.restore();
-      }
-      g.noFill(); g.strokeWeight(sw);
-      g.rect(-dSize / 2, -dSize / 2, dSize, dSize);
-      g.pop();
-    }
-  }
-}
-
-function drawFillerCircles(g, cx, cy, w, h, sw, texture) {
-  const cols = 3, rows = 4;
-  const r = Math.min(w / cols, h / rows) * 0.40;
-  for (let col = 0; col < cols; col++) {
-    for (let row = 0; row < rows; row++) {
-      const dx = cx - w / 2 + (col + 0.5) * (w / cols);
-      const dy = cy - h / 2 + (row + 0.5) * (h / rows);
-      drawFilledEllipse(g, dx, dy, r * 2, r * 2, texture, sw);
-    }
-  }
-}
-
-function drawFillerBoldText(g, cx, cy, w, h, sw) {
-  const words  = ['GUAU', 'WOOF', 'PERRO', 'BORK', 'ARF'];
-  const word   = words[Math.floor(Math.random() * words.length)];
-  const fs     = Math.min(w * 0.52, h * 0.26);
-  const lineH  = fs * 1.18;
-  const lines  = Math.floor(h / lineH);
-  g.push();
-  g.textSize(fs);
-  g.textFont('JetBrains Mono, monospace');
-  g.textAlign(g.CENTER, g.CENTER);
-  for (let i = 0; i < lines; i++) {
-    const ly = cy - h / 2 + lineH * (i + 0.5);
-    if (i % 2 === 0) {
-      g.fill('#1A1A1A'); g.noStroke();
-      g.text(word, cx, ly);
-    } else {
-      g.noFill(); g.stroke('#1A1A1A'); g.strokeWeight(sw * 0.45);
-      g.text(word, cx, ly);
-    }
-  }
-  g.pop();
-}
-
-function drawFillerZigzag(g, cx, cy, w, h, sw) {
-  const rows = 9;
-  const stepH = h / rows;
-  g.push(); g.noFill(); g.strokeWeight(sw * 1.1);
-  for (let row = 0; row < rows; row++) {
-    const yBase = cy - h / 2 + (row + 0.5) * stepH;
-    const cols  = 7;
-    g.beginShape();
-    for (let col = 0; col <= cols; col++) {
-      const x  = cx - w / 2 + (col / cols) * w;
-      const zy = yBase + (col % 2 === 0 ? -stepH * 0.38 : stepH * 0.38);
-      g.vertex(x, zy);
-    }
-    g.endShape();
-  }
-  g.pop();
-}
-
-function drawFillerEye(g, cx, cy, w, h, sw, texture) {
-  const eyeW = w * 0.72;
-  const eyeH = h * 0.22;
-  const count = 3;
-  const gap   = h * 0.3;
-  for (let i = 0; i < count; i++) {
-    const ey = cy - gap + i * gap;
-    drawFilledEllipse(g, cx, ey, eyeW, eyeH, texture, sw);
-    // pupil
-    g.push(); g.fill('#1A1A1A'); g.noStroke();
-    g.circle(cx, ey, eyeH * 0.72);
-    g.pop();
-  }
-}
-
-function drawFillerStarburst(g, cx, cy, w, h, sw) {
-  const r1  = Math.min(w, h) * 0.42;
-  const r2  = r1 * 0.48;
-  const pts = 8 + Math.floor(Math.random() * 5);
-  g.push(); g.fill(255); g.strokeWeight(sw);
-  g.beginShape();
-  for (let i = 0; i < pts * 2; i++) {
-    const a = (Math.PI * 2 / (pts * 2)) * i - Math.PI / 2;
-    const r = i % 2 === 0 ? r1 : r2;
-    g.vertex(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
-  }
-  g.endShape(g.CLOSE);
-  g.pop();
-}
-
-// ── Texture patterns ──────────────────────────────────────────────────────────
-
-function drawTexturePattern(g, bx, by, bw, bh, texture) {
-  const spacing  = Math.max(10, Math.min(bw, bh) * 0.075);
-  const texColor = darkenHex(state.bgColor, 85);
-  g.noFill();
-  g.stroke(texColor + '58');
-  g.strokeWeight(Math.max(2, spacing * 0.13));
-
-  if      (texture === 'HATCHING_45') drawHatching(g, bx, by, bw, bh, spacing, 45);
-  else if (texture === 'CROSSHATCH')  { drawHatching(g, bx, by, bw, bh, spacing, 45); drawHatching(g, bx, by, bw, bh, spacing, -45); }
-  else if (texture === 'DOTS')        drawDotsFill(g, bx, by, bw, bh, spacing, texColor);
-  else if (texture === 'BITMAP')      drawBitmapFill(g, bx, by, bw, bh, spacing, texColor);
-  else if (texture === 'WORDS')       drawWordsFill(g, bx, by, bw, bh, spacing, texColor);
-}
-
-function drawHatching(g, bx, by, bw, bh, spacing, angle) {
-  g.push();
-  g.translate(bx + bw / 2, by + bh / 2);
-  g.rotate(g.radians(angle));
-  const diag = Math.sqrt(bw * bw + bh * bh);
-  for (let i = -diag; i < diag; i += spacing) {
-    g.line(i, -diag, i, diag);
-  }
-  g.pop();
-}
-
-function drawDotsFill(g, bx, by, bw, bh, spacing, texColor) {
-  const r   = spacing * 0.21;
-  const rng = mulberry32(54321);
-  g.noStroke(); g.fill(texColor + '58');
-  for (let ix = bx + spacing / 2; ix < bx + bw; ix += spacing) {
-    for (let iy = by + spacing / 2; iy < by + bh; iy += spacing) {
-      g.circle(ix + (rng() - 0.5) * spacing * 0.28, iy + (rng() - 0.5) * spacing * 0.28, r * 2);
-    }
-  }
-  g.noFill();
-}
-
-function drawBitmapFill(g, bx, by, bw, bh, spacing, texColor) {
-  const px  = Math.max(4, spacing * 0.38);
-  const rng = mulberry32(11111);
-  g.noStroke(); g.fill(texColor + '58');
-  for (let ix = bx; ix < bx + bw; ix += px) {
-    for (let iy = by; iy < by + bh; iy += px) {
-      if (rng() > 0.50) g.rect(ix, iy, px * 0.85, px * 0.85);
-    }
-  }
-  g.noFill();
-}
-
-function drawWordsFill(g, bx, by, bw, bh, spacing, texColor) {
-  const words      = ['woof', 'perro', 'guau'];
-  const fs         = Math.max(8, spacing * 0.62);
-  const colSpacing = fs * 3.8;
-  const rowSpacing = fs * 1.7;
-  g.noStroke(); g.fill(texColor + '58');
-  g.textSize(fs);
-  g.textFont('JetBrains Mono, monospace');
-  let idx = 0;
-  for (let iy = by - rowSpacing; iy < by + bh + rowSpacing; iy += rowSpacing) {
-    for (let ix = bx - colSpacing; ix < bx + bw + colSpacing; ix += colSpacing) {
-      g.push(); g.translate(ix, iy); g.rotate(g.radians(45));
-      g.text(words[idx % words.length], 0, 0);
-      idx++;
-      g.pop();
-    }
-  }
-  g.noFill();
-}
-
-// ── Color & PRNG utils ────────────────────────────────────────────────────────
-
-function darkenHex(hex, amount) {
-  const r  = Math.max(0, parseInt(hex.slice(1, 3), 16) - amount);
-  const gv = Math.max(0, parseInt(hex.slice(3, 5), 16) - amount);
-  const b  = Math.max(0, parseInt(hex.slice(5, 7), 16) - amount);
-  return '#' + [r, gv, b].map(v => v.toString(16).padStart(2, '0')).join('');
-}
+// ── COMPOSE STATE ──────────────────────────────────────────────────────────
+const HANDLE_PX = 8;
+const compose = {
+  dogs: [],
+  selected: -1,
+  activeColor: PALETTE[0],
+  needsRedraw: true,
+  dragging: null,   // { idx, pgStartX, pgStartY, dogStartX, dogStartY }
+  resizing: null,   // { idx, anchorPgX, anchorPgY, anchorIsBottom }
+};
+let sidebarDrag = null; // { tmplIdx, ghost }
 
 function mulberry32(seed) {
   return function () {
@@ -809,82 +293,689 @@ function mulberry32(seed) {
   };
 }
 
-// ── Randomize actions ─────────────────────────────────────────────────────────
+let pg, rng;
 
-function randomizeBackground() {
-  const idx      = Math.floor(Math.random() * BG_PALETTE.length);
-  state.bgColor  = BG_PALETTE[idx].hex;
-  state.bgName   = BG_PALETTE[idx].name;
-  updateMeta('meta-bg', `${state.bgColor} ${state.bgName}`);
+// ── SKETCH ─────────────────────────────────────────────────────────────────
+
+new p5(function (p) {
+  p.setup = function () {
+    const wrapper = document.getElementById('canvas-wrapper');
+    const dims = scaledDims();
+    p.createCanvas(dims.w, dims.h).parent(wrapper);
+    p.noLoop();
+    const fmt = FORMATS[state.format];
+    pg = p.createGraphics(fmt.w, fmt.h);
+    wireUI(p);
+    generateDogs(1);
+  };
+
+  p.draw = function () {
+    if (state.mode === 'compose') {
+      renderCompose(p);
+    } else {
+      if (!state.needsRedraw) return;
+      state.needsRedraw = false;
+      renderFrame(p);
+    }
+  };
+
+  p.mousePressed = function () {
+    if (state.mode !== 'compose') return;
+    const fmt  = FORMATS[state.format];
+    const dims = scaledDims();
+    const sc   = fmt.w / dims.w;
+    const pgX  = p.mouseX * sc;
+    const pgY  = p.mouseY * sc;
+
+    // Check corner handles of selected dog first
+    if (compose.selected >= 0 && compose.selected < compose.dogs.length) {
+      const lay  = composeDogLayout(compose.dogs[compose.selected]);
+      const sSc  = dims.w / fmt.w;
+      const corners = [
+        { px: lay.x,         py: lay.y,         ancX: lay.x + lay.w, ancY: lay.y + lay.h },
+        { px: lay.x + lay.w, py: lay.y,         ancX: lay.x,         ancY: lay.y + lay.h },
+        { px: lay.x,         py: lay.y + lay.h, ancX: lay.x + lay.w, ancY: lay.y         },
+        { px: lay.x + lay.w, py: lay.y + lay.h, ancX: lay.x,         ancY: lay.y         },
+      ];
+      for (const corner of corners) {
+        if (Math.abs(p.mouseX - corner.px * sSc) <= HANDLE_PX + 2 &&
+            Math.abs(p.mouseY - corner.py * sSc) <= HANDLE_PX + 2) {
+          compose.resizing = {
+            idx: compose.selected,
+            anchorPgX: corner.ancX,
+            anchorPgY: corner.ancY,
+            anchorIsBottom: corner.ancY > lay.y + lay.h * 0.5,
+          };
+          return false;
+        }
+      }
+    }
+
+    // Hit test dogs topmost first
+    for (let i = compose.dogs.length - 1; i >= 0; i--) {
+      const lay = composeDogLayout(compose.dogs[i]);
+      if (pgX >= lay.x && pgX <= lay.x + lay.w &&
+          pgY >= lay.y && pgY <= lay.y + lay.h) {
+        compose.selected = i;
+        compose.dragging = {
+          idx: i, pgStartX: pgX, pgStartY: pgY,
+          dogStartX: compose.dogs[i].x,
+          dogStartY: compose.dogs[i].y,
+        };
+        return false;
+      }
+    }
+    compose.selected = -1;
+  };
+
+  p.mouseDragged = function () {
+    if (state.mode !== 'compose') return;
+    const fmt  = FORMATS[state.format];
+    const dims = scaledDims();
+    const sc   = fmt.w / dims.w;
+    const pgX  = p.mouseX * sc;
+    const pgY  = p.mouseY * sc;
+
+    if (compose.resizing) {
+      const { idx, anchorPgX, anchorPgY, anchorIsBottom } = compose.resizing;
+      const dog = compose.dogs[idx];
+      let   grid = TEMPLATES[dog.tmplIdx].grid;
+      if (dog.flipped) grid = flipGrid(grid);
+      const b    = spriteBounds(grid);
+      const minW = b.w * 4;
+      const cs   = Math.max(4, Math.floor(Math.max(minW, Math.abs(pgX - anchorPgX)) / b.w));
+      dog.w  = b.w * cs;
+      dog.x  = Math.min(pgX, anchorPgX);
+      dog.y  = anchorIsBottom ? anchorPgY - b.h * cs : anchorPgY;
+      compose.needsRedraw = true;
+      return false;
+    }
+
+    if (compose.dragging) {
+      const { idx, pgStartX, pgStartY, dogStartX, dogStartY } = compose.dragging;
+      compose.dogs[idx].x = dogStartX + (pgX - pgStartX);
+      compose.dogs[idx].y = dogStartY + (pgY - pgStartY);
+      compose.needsRedraw = true;
+      return false;
+    }
+  };
+
+  p.mouseReleased = function () {
+    compose.dragging = null;
+    compose.resizing = null;
+  };
+});
+
+function scaledDims() {
+  const fmt    = FORMATS[state.format];
+  const wrapper = document.getElementById('canvas-wrapper');
+  const availW  = wrapper.clientWidth  || window.innerWidth  - 260;
+  const availH  = wrapper.clientHeight || window.innerHeight;
+  const scale   = Math.min(availW / fmt.w, availH / fmt.h) * 0.96;
+  return { w: Math.floor(fmt.w * scale), h: Math.floor(fmt.h * scale) };
+}
+
+function renderFrame(p) {
+  const fmt = FORMATS[state.format];
+  if (!pg || pg.width !== fmt.w || pg.height !== fmt.h) {
+    if (pg) pg.remove();
+    pg = p.createGraphics(fmt.w, fmt.h);
+  }
+  pg.background(CANVAS_BG);
+  for (const dog of state.dogs) drawPixelDog(pg, dog);
+  const dims = scaledDims();
+  p.resizeCanvas(dims.w, dims.h);
+  p.smooth();
+  p.image(pg, 0, 0, dims.w, dims.h);
+}
+
+// ── COLOR HELPERS ──────────────────────────────────────────────────────────
+
+function darkenHex(hex, f) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return `rgb(${(r*f)|0},${(g*f)|0},${(b*f)|0})`;
+}
+
+// ── CELL DRAW ──────────────────────────────────────────────────────────────
+// val 1 = body color · val 2 = black · val 3 = dark body (~55%) · val 4 = red accent
+
+const RED_ACCENT = '#CC2020';
+
+function drawCell(g, px, py, cs, val, color) {
+  g.noStroke();
+  if      (val === 1) g.fill(color);
+  else if (val === 3) g.fill(darkenHex(color, 0.55));
+  else if (val === 4) g.fill(RED_ACCENT);
+  else                g.fill(BLACK);
+  if (state.effects.SCALLOPED) {
+    g.ellipse(px + cs * 0.5, py + cs * 0.5, cs * 0.86, cs * 0.86);
+  } else {
+    g.rect(px, py, cs, cs);
+  }
+}
+
+function drawPixelDog(g, dog) {
+  const { grid, cellSize, startX, startY, color } = dog;
+  for (let r = 0; r < grid.length; r++) {
+    for (let c = 0; c < grid[r].length; c++) {
+      const val = grid[r][c];
+      if (val) drawCell(g, startX + c * cellSize, startY + r * cellSize, cellSize, val, color);
+    }
+  }
+}
+
+// ── DOG RASTERIZER ─────────────────────────────────────────────────────────
+// All anatomy coords defined in base 40×54 space, scaled to any spriteCols.
+// Guaranteed parts: tail, body, legs, paws, head, ears, eyes.
+// val 1 = base color · val 2 = black
+
+function rasterizeDog(facing, opts, spriteCols, spriteRows) {
+  const cols = spriteCols;
+  const rows = spriteRows;
+  const grid = Array.from({ length: rows }, () => new Uint8Array(cols));
+  const sx   = cols / 40;
+  const sy   = rows / 54;
+
+  function fx(cx) { return facing === 1 ? cx * sx : cols - 1 - cx * sx; }
+
+  function fill(rawCx, rawCy, rawRx, rawRy, val) {
+    const cx = fx(rawCx), cy = rawCy * sy;
+    const rx = rawRx * sx, ry = rawRy * sy;
+    const x0 = Math.max(0, Math.floor(cx - rx));
+    const x1 = Math.min(cols - 1, Math.ceil(cx + rx));
+    const y0 = Math.max(0, Math.floor(cy - ry));
+    const y1 = Math.min(rows - 1, Math.ceil(cy + ry));
+    for (let r = y0; r <= y1; r++)
+      for (let c = x0; c <= x1; c++) {
+        const dx = (c - cx) / rx, dy = (r - cy) / ry;
+        if (dx * dx + dy * dy <= 1.0) grid[r][c] = val;
+      }
+  }
+
+  const { headRx, headRy, headCy, earW, earH,
+          bodyRx, bodyRy, legH, legW, pawR,
+          tailW,  tailH,  eyeR } = opts;
+
+  const legCy  = 35 + bodyRy + legH;           // leg center y
+  const pawCy  = Math.min(52, legCy + legH + 1); // paw y, clamped
+
+  // ── back to front ──────────────────────────────────────────────────────
+
+  // tail
+  fill(7, 28, tailW, tailH, 1);
+
+  // body
+  fill(20, 35, bodyRx, bodyRy, 1);
+
+  // legs — 4 stubs (black so they read as separate)
+  fill(11, legCy, legW, legH, 2);
+  fill(17, legCy, legW, legH, 2);
+  fill(24, legCy, legW, legH, 2);
+  fill(30, legCy, legW, legH, 2);
+
+  // paws (base color, wider than legs)
+  fill(11, pawCy, pawR * 1.4, pawR, 1);
+  fill(17, pawCy, pawR * 1.4, pawR, 1);
+  fill(24, pawCy, pawR * 1.4, pawR, 1);
+  fill(30, pawCy, pawR * 1.4, pawR, 1);
+
+  // ears (base color)
+  fill(16, headCy - headRy * 0.5, earW,       earH,       1);
+  fill(23, headCy - headRy * 0.5, earW * 0.9, earH * 0.9, 1);
+
+  // head
+  fill(21, headCy, headRx, headRy, 1);
+
+  // eye (black)
+  fill(16, headCy - headRy * 0.15, eyeR, eyeR * 1.1, 2);
+
+  return grid;
+}
+
+// ── GRID MUTATION ──────────────────────────────────────────────────────────
+// Produces a unique variation of any grid by randomly duplicating or removing
+// rows in three anatomical zones: ears (top), body (middle), legs (bottom).
+// The silhouette is always preserved — only proportions change.
+
+function mutateGrid(src, rng) {
+  let grid = src.map(r => new Uint8Array(r));
+
+  // Helper: duplicate a row N times at position idx
+  function dupRow(idx, n) {
+    const ref = grid[Math.min(idx, grid.length - 1)];
+    for (let i = 0; i < n; i++) grid.splice(idx, 0, new Uint8Array(ref));
+  }
+
+  // Helper: remove N rows starting at idx (keep at least 1)
+  function delRows(idx, n) {
+    const safe = Math.min(n, grid.length - idx - 1);
+    if (safe > 0) grid.splice(idx, safe);
+  }
+
+  const earRows  = Math.round((rng() - 0.3) * 4); // -1..+2 ear rows
+  const bodyRows = Math.round((rng() - 0.3) * 5); // -1..+3 body rows
+  const legRows  = Math.round((rng() - 0.3) * 4); // -1..+2 leg rows
+
+  // Top zone — ears
+  if (earRows > 0)  dupRow(0, earRows);
+  else if (earRows < 0) delRows(0, -earRows);
+
+  // Middle zone — body (recalculate mid after ear change)
+  const mid = Math.floor(grid.length * 0.45);
+  if (bodyRows > 0)  dupRow(mid, bodyRows);
+  else if (bodyRows < 0) delRows(mid, -bodyRows);
+
+  // Bottom zone — legs/paws
+  const bot = grid.length - 2;
+  if (legRows > 0)  dupRow(bot, legRows);
+  else if (legRows < 0) delRows(bot, -legRows);
+
+  return grid;
+}
+
+// ── GRID HELPERS ───────────────────────────────────────────────────────────
+
+function scaleGrid(src, tCols, tRows) {
+  const sRows = src.length, sCols = src[0].length;
+  return Array.from({ length: tRows }, (_, r) => {
+    const sr = Math.floor(r / tRows * sRows);
+    return Uint8Array.from({ length: tCols }, (_, c) =>
+      src[sr][Math.floor(c / tCols * sCols)]);
+  });
+}
+
+function flipGrid(grid) {
+  return grid.map(row => Uint8Array.from([...row].reverse()));
+}
+
+// ── SPRITE BOUNDS ──────────────────────────────────────────────────────────
+// Find the tight bounding box of non-empty cells so we can fill the canvas
+// with the actual dog content rather than the full sprite rectangle.
+
+function spriteBounds(grid) {
+  let minR = grid.length, maxR = 0, minC = grid[0].length, maxC = 0;
+  for (let r = 0; r < grid.length; r++)
+    for (let c = 0; c < grid[r].length; c++)
+      if (grid[r][c]) {
+        if (r < minR) minR = r; if (r > maxR) maxR = r;
+        if (c < minC) minC = c; if (c > maxC) maxC = c;
+      }
+  return { minR, maxR, minC, maxC,
+           w: maxC - minC + 1, h: maxR - minR + 1 };
+}
+
+// ── COMPOSE HELPERS ────────────────────────────────────────────────────────
+
+function composeDogLayout(dog) {
+  let grid = TEMPLATES[dog.tmplIdx].grid;
+  if (dog.flipped) grid = flipGrid(grid);
+  const b  = spriteBounds(grid);
+  const cs = Math.max(1, Math.floor(dog.w / b.w));
+  return { grid, b, cs, x: dog.x, y: dog.y, w: b.w * cs, h: b.h * cs };
+}
+
+function drawComposeDog(g, dog) {
+  const { grid, b, cs, x, y } = composeDogLayout(dog);
+  for (let r = 0; r < grid.length; r++)
+    for (let c = 0; c < grid[r].length; c++) {
+      const val = grid[r][c];
+      if (val) drawCell(g, x + (c - b.minC) * cs, y + (r - b.minR) * cs, cs, val, dog.color);
+    }
+}
+
+function thumbnailDataURL(tmplIdx, color) {
+  const cv  = document.createElement('canvas');
+  cv.width = cv.height = 60;
+  const ctx = cv.getContext('2d');
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(0, 0, 60, 60);
+  const grid = TEMPLATES[tmplIdx].grid;
+  const b    = spriteBounds(grid);
+  const cs   = Math.max(1, Math.min(Math.floor(60 / b.w), Math.floor(60 / b.h)));
+  const ox   = Math.floor((60 - b.w * cs) / 2);
+  const oy   = Math.floor((60 - b.h * cs) / 2);
+  for (let r = 0; r < grid.length; r++)
+    for (let c = 0; c < grid[r].length; c++) {
+      const val = grid[r][c];
+      if (!val) continue;
+      ctx.fillStyle = val === 1 ? color
+                    : val === 3 ? darkenHex(color, 0.55)
+                    : val === 4 ? RED_ACCENT
+                    : BLACK;
+      ctx.fillRect(ox + (c - b.minC) * cs, oy + (r - b.minR) * cs, cs, cs);
+    }
+  return cv.toDataURL();
+}
+
+function renderCompose(p) {
+  const fmt = FORMATS[state.format];
+  if (!pg || pg.width !== fmt.w || pg.height !== fmt.h) {
+    if (pg) pg.remove();
+    pg = p.createGraphics(fmt.w, fmt.h);
+  }
+  if (compose.needsRedraw) {
+    compose.needsRedraw = false;
+    pg.background(CANVAS_BG);
+    for (const dog of compose.dogs) drawComposeDog(pg, dog);
+  }
+  const dims = scaledDims();
+  p.resizeCanvas(dims.w, dims.h);
+  p.image(pg, 0, 0, dims.w, dims.h);
+
+  // Selection overlay (drawn on screen canvas, not pg — not exported)
+  if (compose.selected >= 0 && compose.selected < compose.dogs.length) {
+    const lay = composeDogLayout(compose.dogs[compose.selected]);
+    const sc  = dims.w / fmt.w;
+    const bx  = lay.x * sc, by = lay.y * sc;
+    const bw  = lay.w * sc, bh = lay.h * sc;
+    p.push();
+    p.noFill(); p.stroke(70, 110, 240); p.strokeWeight(1.5);
+    p.rect(bx, by, bw, bh);
+    p.fill(255); p.stroke(70, 110, 240); p.strokeWeight(1.5);
+    const hs = HANDLE_PX;
+    for (const [hx, hy] of [[bx,by],[bx+bw,by],[bx,by+bh],[bx+bw,by+bh]])
+      p.rect(hx - hs/2, hy - hs/2, hs, hs);
+    p.pop();
+  }
+}
+
+// ── SIDEBAR DRAG ───────────────────────────────────────────────────────────
+
+function startSidebarDrag(tmplIdx, e) {
+  const ghost = document.createElement('img');
+  ghost.id    = 'drag-ghost';
+  ghost.src   = thumbnailDataURL(tmplIdx, compose.activeColor);
+  ghost.style.width = ghost.style.height = '60px';
+  document.body.appendChild(ghost);
+  moveDragGhost(e.clientX, e.clientY);
+  sidebarDrag = { tmplIdx, ghost };
+}
+
+function moveDragGhost(cx, cy) {
+  if (!sidebarDrag) return;
+  sidebarDrag.ghost.style.left = `${cx - 30}px`;
+  sidebarDrag.ghost.style.top  = `${cy - 30}px`;
+}
+
+function endSidebarDrag(e) {
+  if (!sidebarDrag) return;
+  const { tmplIdx, ghost } = sidebarDrag;
+  document.body.removeChild(ghost);
+  sidebarDrag = null;
+  const canvasEl = document.querySelector('#canvas-wrapper canvas');
+  if (!canvasEl) return;
+  const rect = canvasEl.getBoundingClientRect();
+  if (e.clientX >= rect.left && e.clientX <= rect.right &&
+      e.clientY >= rect.top  && e.clientY <= rect.bottom) {
+    const fmt  = FORMATS[state.format];
+    const dims = scaledDims();
+    const pgX  = (e.clientX - rect.left) * fmt.w / dims.w;
+    const pgY  = (e.clientY - rect.top)  * fmt.h / dims.h;
+    placeDog(tmplIdx, pgX, pgY);
+  }
+}
+
+function placeDog(tmplIdx, pgX, pgY) {
+  const grid = TEMPLATES[tmplIdx].grid;
+  const b    = spriteBounds(grid);
+  const fmt  = FORMATS[state.format];
+  const cs   = Math.max(4, Math.floor(fmt.w * 0.30 / b.w));
+  const w    = b.w * cs;
+  const h    = b.h * cs;
+  compose.dogs.push({
+    tmplIdx, color: compose.activeColor, flipped: false,
+    x: pgX - w / 2, y: pgY - h / 2, w,
+  });
+  compose.selected  = compose.dogs.length - 1;
+  compose.needsRedraw = true;
+}
+
+// ── GENERATION ─────────────────────────────────────────────────────────────
+
+function generateDogs(count, keepSeed = false) {
+  if (!keepSeed) state.seed = Math.floor(Math.random() * 1e9);
+  rng = mulberry32(state.seed);
+
+  const fmt  = FORMATS[state.format];
+  const cW   = fmt.w;
+  const cH   = fmt.h;
+  state.dogs = [];
+
+  for (let i = 0; i < count; i++) {
+    const targetFill = count === 1 ? 0.88 : 0.44;
+    const sCols      = state.pixelCols;
+    const colorIdx   = Math.floor(rng() * PALETTE.length);
+
+    let grid;
+
+    if (rng() < 0.65) {
+      // ── Template style ─────────────────────────────────────────────────
+      const tmpl    = TEMPLATES[Math.floor(rng() * TEMPLATES.length)];
+      const srcCols = tmpl.grid[0].length;
+      const srcRows = tmpl.grid.length;
+      const tRows   = Math.round(sCols * srcRows / srcCols);
+      grid = scaleGrid(tmpl.grid, sCols, tRows);
+      if (!tmpl.symmetric && rng() > 0.5) grid = flipGrid(grid);
+      grid = mutateGrid(grid, rng); // unique proportions every time
+
+    } else {
+      // ── Procedural ellipse style ────────────────────────────────────────
+      const sRows  = Math.round(sCols * 54 / 40);
+      const facing = rng() > 0.5 ? 1 : -1;
+      const style  = rng();
+      const opts   = {
+        headRx: 5  + rng() * 9,
+        headRy: 4  + rng() * 8,
+        headCy: 10 + rng() * 8,
+        earW:   2  + rng() * 3,
+        earH:   3  + rng() * 7,
+        bodyRx: 9  + rng() * 7,
+        bodyRy: 6  + style  * 7,
+        legH:   2  + rng() * 5,
+        legW:   1.5 + rng() * 2,
+        pawR:   1.5 + rng() * 2,
+        tailW:  1.5 + rng() * 2.5,
+        tailH:  4  + rng() * 7,
+        eyeR:   1  + rng() * 1.5,
+      };
+      grid = rasterizeDog(facing, opts, sCols, sRows);
+    }
+    const bounds   = spriteBounds(grid);
+
+    // Cell size driven by the actual dog content, not the full sprite rectangle
+    const csW      = Math.floor(cW * targetFill / bounds.w);
+    const csH      = Math.floor(cH * targetFill / bounds.h);
+    const cellSize = Math.max(1, Math.min(csW, csH));
+
+    const contentW = bounds.w * cellSize;
+    const contentH = bounds.h * cellSize;
+
+    // Center content; offset so sprite origin aligns correctly
+    let baseContentX, baseContentY;
+    if (count === 1) {
+      baseContentX = (cW - contentW) / 2 + (rng() - 0.5) * cW * 0.04;
+      baseContentY = (cH - contentH) / 2 + (rng() - 0.5) * cH * 0.04;
+    } else {
+      baseContentX = i === 0 ? cW * 0.04 : cW * 0.54;
+      baseContentY = (cH - contentH) / 2 + (rng() - 0.5) * cH * 0.03;
+    }
+
+    const startX = Math.floor(baseContentX) - bounds.minC * cellSize;
+    const startY = Math.floor(baseContentY) - bounds.minR * cellSize;
+
+    state.dogs.push({
+      grid, cellSize, startX, startY,
+      color: PALETTE[colorIdx],
+    });
+  }
+
+  document.getElementById('meta-dogs').textContent =
+    `× ${count} dog${count > 1 ? 's' : ''}`;
   state.needsRedraw = true;
-  if (p5instance) p5instance.redraw();
 }
 
-function randomizeTexture() {
-  const idx       = Math.floor(Math.random() * TEXTURES.length);
-  state.texture   = TEXTURES[idx].id;
-  state.texLabel  = TEXTURES[idx].label;
-  updateMeta('meta-texture', state.texLabel);
-  state.needsRedraw = true;
-  if (p5instance) p5instance.redraw();
+// ── COMPOSE UI BUILDERS ────────────────────────────────────────────────────
+
+function buildColorSwatches(p) {
+  const container = document.getElementById('color-swatches');
+  container.innerHTML = '';
+  PALETTE.forEach(color => {
+    const el = document.createElement('div');
+    el.className = 'color-swatch' + (color === compose.activeColor ? ' active' : '');
+    el.style.background = color;
+    el.addEventListener('click', () => {
+      compose.activeColor = color;
+      document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+      el.classList.add('active');
+      buildTemplateGrid();
+    });
+    container.appendChild(el);
+  });
 }
 
-// ── Export ────────────────────────────────────────────────────────────────────
-
-function exportPNG() {
-  pg.save(`doggo-print-${Date.now()}.png`);
+function buildTemplateGrid() {
+  const grid = document.getElementById('template-grid');
+  grid.innerHTML = '';
+  TEMPLATES.forEach((_, idx) => {
+    const img = document.createElement('img');
+    img.className = 'tmpl-thumb';
+    img.src       = thumbnailDataURL(idx, compose.activeColor);
+    img.draggable = false;
+    img.title     = `Template ${idx + 1}`;
+    img.addEventListener('mousedown', e => {
+      e.preventDefault();
+      if (state.mode === 'compose') startSidebarDrag(idx, e);
+    });
+    grid.appendChild(img);
+  });
 }
 
-function exportPDF() {
-  const { jsPDF }   = window.jspdf;
-  const fmtKey      = state.format;
-  const dims        = fmtKey === 'A4' ? [210, 297] : [297, 420];
-  const doc         = new jsPDF({ orientation: 'portrait', unit: 'mm', format: fmtKey.toLowerCase() });
-  const imgData     = pg.elt.toDataURL('image/jpeg', 0.92);
-  doc.addImage(imgData, 'JPEG', 0, 0, dims[0], dims[1]);
-  doc.save(`doggo-print-${Date.now()}.pdf`);
+function switchMode(p, mode) {
+  state.mode = mode;
+  document.getElementById('btn-mode-gen').classList.toggle('active', mode === 'generate');
+  document.getElementById('btn-mode-comp').classList.toggle('active', mode === 'compose');
+  document.getElementById('panel-generate').style.display = mode === 'generate' ? '' : 'none';
+  document.getElementById('panel-compose').style.display  = mode === 'compose'  ? '' : 'none';
+  if (mode === 'compose') {
+    compose.needsRedraw = true;
+  } else {
+    state.needsRedraw = true;
+  }
+  p.loop();
 }
 
-// ── UI wiring ─────────────────────────────────────────────────────────────────
+// ── WIRE UI ────────────────────────────────────────────────────────────────
 
 function wireUI(p) {
-  document.getElementById('btn-dogs').addEventListener('click', randomizeDogs);
-  document.getElementById('btn-bg').addEventListener('click', randomizeBackground);
-  document.getElementById('btn-texture').addEventListener('click', randomizeTexture);
-  document.getElementById('btn-a4').addEventListener('click', () => setFormat('A4', p));
-  document.getElementById('btn-a3').addEventListener('click', () => setFormat('A3', p));
+  let dogCount = 1;
+
+  document.getElementById('btn-dogs').addEventListener('click', () => {
+    generateDogs(dogCount);
+    p.loop();
+  });
+
+  const metaDogs = document.getElementById('meta-dogs');
+  metaDogs.style.cursor = 'pointer';
+  metaDogs.addEventListener('click', () => {
+    dogCount = dogCount === 1 ? 2 : 1;
+    generateDogs(dogCount);
+    p.loop();
+  });
+
+  document.getElementById('eff-scallop').addEventListener('click', function () {
+    state.effects.SCALLOPED = !state.effects.SCALLOPED;
+    this.classList.toggle('on', state.effects.SCALLOPED);
+    state.needsRedraw = true;
+    p.loop();
+  });
+
+  const slider    = document.getElementById('slider-pixel');
+  const metaPixel = document.getElementById('meta-pixel');
+  slider.addEventListener('input', () => {
+    state.pixelCols = parseInt(slider.value, 10);
+    metaPixel.textContent = `${state.pixelCols} columnas`;
+    generateDogs(dogCount, true);
+    p.loop();
+  });
+
+  document.getElementById('btn-a4').addEventListener('click', () => switchFormat(p, 'A4'));
+  document.getElementById('btn-a3').addEventListener('click', () => switchFormat(p, 'A3'));
   document.getElementById('btn-png').addEventListener('click', exportPNG);
   document.getElementById('btn-pdf').addEventListener('click', exportPDF);
 
-  updateMeta('meta-bg', `${state.bgColor} ${state.bgName}`);
-  updateMeta('meta-texture', state.texLabel);
+  // ── Compose mode ──────────────────────────────────────────────────────────
+  document.getElementById('btn-mode-gen').addEventListener('click',  () => switchMode(p, 'generate'));
+  document.getElementById('btn-mode-comp').addEventListener('click', () => switchMode(p, 'compose'));
+
+  buildColorSwatches(p);
+  buildTemplateGrid();
+
+  document.getElementById('btn-flip-compose').addEventListener('click', () => {
+    if (compose.selected >= 0) {
+      const dog = compose.dogs[compose.selected];
+      dog.flipped = !dog.flipped;
+      compose.needsRedraw = true;
+    }
+  });
+
+  document.getElementById('btn-delete-compose').addEventListener('click', () => {
+    if (compose.selected >= 0) {
+      compose.dogs.splice(compose.selected, 1);
+      compose.selected = Math.min(compose.selected, compose.dogs.length - 1);
+      compose.needsRedraw = true;
+    }
+  });
+
+  document.getElementById('btn-clear-compose').addEventListener('click', () => {
+    compose.dogs    = [];
+    compose.selected = -1;
+    compose.needsRedraw = true;
+  });
+
+  // Drag ghost tracking & drop
+  document.addEventListener('mousemove', e => moveDragGhost(e.clientX, e.clientY));
+  document.addEventListener('mouseup',   e => endSidebarDrag(e));
+
+  // Delete / Backspace removes selected dog in compose mode
+  document.addEventListener('keydown', e => {
+    if (state.mode === 'compose' && (e.key === 'Delete' || e.key === 'Backspace')) {
+      if (compose.selected >= 0) {
+        compose.dogs.splice(compose.selected, 1);
+        compose.selected = Math.min(compose.selected, compose.dogs.length - 1);
+        compose.needsRedraw = true;
+      }
+    }
+  });
 }
 
-function setFormat(fmt, p) {
+function switchFormat(p, fmt) {
   state.format = fmt;
   document.getElementById('btn-a4').classList.toggle('active', fmt === 'A4');
   document.getElementById('btn-a3').classList.toggle('active', fmt === 'A3');
-
-  const newFmt = FORMATS[fmt];
-  pg = p.createGraphics(newFmt.w, newFmt.h);
-
-  randomizeDogs();
-
-  const dims = scaledDims();
-  p.resizeCanvas(dims.w, dims.h);
+  const f = FORMATS[fmt];
+  if (pg) pg.remove();
+  pg = p.createGraphics(f.w, f.h);
+  generateDogs(state.dogs.length || 1, true);
   state.needsRedraw = true;
-  p.redraw();
+  p.loop();
 }
 
-function updateMeta(id, text) {
-  const el = document.getElementById(id);
-  if (el) el.textContent = text;
+function exportPNG() {
+  if (!pg) return;
+  const link = document.createElement('a');
+  link.download = `doggo-prints-${state.format.toLowerCase()}.png`;
+  link.href = pg.elt.toDataURL('image/png');
+  link.click();
 }
 
-window.addEventListener('resize', () => {
-  if (!p5instance) return;
-  const dims = scaledDims();
-  p5instance.resizeCanvas(dims.w, dims.h);
-  state.needsRedraw = true;
-  p5instance.redraw();
-});
+function exportPDF() {
+  if (!pg || typeof jspdf === 'undefined') return;
+  const { jsPDF } = jspdf;
+  const isA4 = state.format === 'A4';
+  const doc  = new jsPDF({ orientation: 'portrait', unit: 'mm', format: isA4 ? 'a4' : 'a3' });
+  doc.addImage(pg.elt.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0,
+    isA4 ? 210 : 297, isA4 ? 297 : 420);
+  doc.save(`doggo-prints-${state.format.toLowerCase()}.pdf`);
+}
