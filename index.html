@@ -16,18 +16,12 @@
 <body>
   <div class="app">
     <aside class="sidebar">
-      <div class="sidebar-title">DOGGO<br>PRINTS</div>
-
-      <div class="mode-row">
-        <button class="toggle-btn mode-toggle active" id="btn-mode-gen">generar</button>
-        <span class="toggle-sep">|</span>
-        <button class="toggle-btn mode-toggle" id="btn-mode-comp">componer</button>
-      </div>
+      <div class="sidebar-title">RANDOM<br>ANIMALS<br>OF THE<br>WORLD</div>
 
       <!-- Generate panel -->
       <div id="panel-generate">
         <div class="section">
-          <div class="section-label">PERRITO</div>
+          <div class="section-label">GENERAR</div>
           <button class="btn" id="btn-dogs">[ randomize ]</button>
           <div class="section-meta" id="meta-dogs">× 1 dog</div>
         </div>
@@ -35,6 +29,19 @@
         <div class="section">
           <div class="section-label">EFECTOS</div>
           <button class="btn btn-effect" id="eff-scallop">[ scalloped ]</button>
+          <button class="btn btn-effect" id="btn-recolor">[ nuevo color ]</button>
+        </div>
+
+        <div class="section">
+          <div class="section-label">CUERPO</div>
+          <button class="btn btn-part" id="bp-cola">[ cola ]</button>
+          <button class="btn btn-part" id="bp-ojos">[ ojos ]</button>
+          <button class="btn btn-part" id="bp-patas">[ patas ]</button>
+          <button class="btn btn-part" id="bp-nariz">[ nariz ]</button>
+          <button class="btn btn-part" id="bp-cuerpo">[ cuerpo ]</button>
+          <button class="btn btn-part" id="bp-voltear">[ voltear ]</button>
+          <button class="btn btn-part" id="bp-largo">[ largo ]</button>
+          <button class="btn btn-part" id="bp-ancho">[ ancho ]</button>
         </div>
 
         <div class="section">
@@ -46,25 +53,8 @@
         </div>
       </div>
 
-      <!-- Compose panel -->
-      <div id="panel-compose" style="display:none">
-        <div class="section">
-          <div class="section-label">COLOR</div>
-          <div class="color-swatches" id="color-swatches"></div>
-        </div>
-        <div class="section">
-          <div class="section-label">TEMPLATES</div>
-          <div class="template-grid" id="template-grid"></div>
-          <div class="section-meta" style="margin-top:8px">arrastra al canvas</div>
-        </div>
-        <div class="section compose-actions">
-          <button class="btn" id="btn-flip-compose">[ voltear ]</button>
-          <button class="btn btn-export" id="btn-delete-compose">[ eliminar ]</button>
-          <button class="btn btn-export" id="btn-clear-compose">[ limpiar canvas ]</button>
-        </div>
-      </div>
 
-      <div class="sidebar-bottom">
+<div class="sidebar-bottom">
         <div class="format-toggle">
           <button class="toggle-btn active" id="btn-a4">A4</button>
           <span class="toggle-sep">|</span>
