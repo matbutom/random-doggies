@@ -7,8 +7,23 @@ const FORMATS = {
   A4: { w: 2480, h: 3508 },
   A3: { w: 3508, h: 4961 },
 };
+
+function getFormat() {
+  const f = FORMATS[state.format];
+  return state.landscape ? { w: f.h, h: f.w } : f;
+}
+
 const CANVAS_BG = '#FFFFFF';
-const PALETTE   = ['#F5C842', '#F57DB0', '#7EC8E3'];
+const PALETTE   = [
+  '#F5C842', // amarillo
+  '#F57DB0', // rosa
+  '#7EC8E3', // celeste
+  '#78C99A', // verde
+  '#6EA8D8', // azul
+  '#F5904A', // naranjo
+  '#B07EC8', // morado
+  '#E86060', // rojo
+];
 const BLACK     = '#1A1A1A';
 
 // ── HAND-CRAFTED TEMPLATES ──────────────────────────────────────────────────
@@ -584,6 +599,19 @@ const LEG_TEMPLATES = [
       [1,1,1],
       [2,2,2],
     ]},
+  // 5 — thin stick legs (1px wide, stretches tall via legLength gene)
+  { size: 'long', style: 'stick', attach: [0,0],
+    grid: [
+      [1],
+      [1],
+      [1],
+      [1],
+      [1],
+      [1],
+      [1],
+      [1],
+      [2],
+    ]},
 ];
 
 const TAIL_TEMPLATES = [
@@ -753,9 +781,8 @@ function generateDNA(rng) {
     tailType,
     accessory: rng() < 0.3 ? Math.floor(rng() * ACCESSORY_TEMPLATES.length) : -1,
     palette:   Math.floor(rng() * PALETTE.length),
-    facing:        rng() > 0.5 ? 1 : -1,
-    extraRotation: 0,
-    symmetric:     rng() < 0.35,
+    facing:    rng() > 0.5 ? 1 : -1,
+    symmetric: rng() < 0.35,
     mutations:     rollMutations(rng),
     speciesTraits: {
       species:   speciesKey,
@@ -1289,11 +1316,12 @@ function applyMutations(canvas, dna, skeleton) {
 
 const state = {
   format: 'A4',
+  landscape: false,
   seed: Math.floor(Math.random() * 1e9),
   creatures: [],
   pixelCols: 20,
   needsRedraw: true,
-  effects: { SCALLOPED: false },
+  effects: {},
 };
 
 function mulberry32(seed) {
@@ -1315,7 +1343,7 @@ new p5(function (p) {
     const dims = scaledDims();
     p.createCanvas(dims.w, dims.h).parent(wrapper);
     p.noLoop();
-    const fmt = FORMATS[state.format];
+    const fmt = getFormat();
     pg = p.createGraphics(fmt.w, fmt.h);
     wireUI(p);
     generateCreatures(1);
@@ -1329,7 +1357,7 @@ new p5(function (p) {
 });
 
 function scaledDims() {
-  const fmt    = FORMATS[state.format];
+  const fmt    = getFormat();
   const wrapper = document.getElementById('canvas-wrapper');
   const availW  = wrapper.clientWidth  || window.innerWidth  - 260;
   const availH  = wrapper.clientHeight || window.innerHeight;
@@ -1338,7 +1366,7 @@ function scaledDims() {
 }
 
 function renderFrame(p) {
-  const fmt = FORMATS[state.format];
+  const fmt = getFormat();
   if (!pg || pg.width !== fmt.w || pg.height !== fmt.h) {
     if (pg) pg.remove();
     pg = p.createGraphics(fmt.w, fmt.h);
@@ -1371,11 +1399,7 @@ function drawCell(g, px, py, cs, val, color) {
   else if (val === 3) g.fill(darkenHex(color, 0.55));
   else if (val === 4) g.fill(RED_ACCENT);
   else                g.fill(BLACK);
-  if (state.effects.SCALLOPED) {
-    g.ellipse(px + cs * 0.5, py + cs * 0.5, cs * 0.86, cs * 0.86);
-  } else {
-    g.rect(px, py, cs, cs);
-  }
+  g.rect(px, py, cs, cs);
 }
 
 // ── PIPELINE STAGE 5 — render(g, dog) ──────────────────────────────────────
@@ -1548,7 +1572,7 @@ function generateCreatures(count, keepSeed = false) {
   if (!keepSeed) state.seed = Math.floor(Math.random() * 1e9);
   rng = mulberry32(state.seed);
 
-  const fmt  = FORMATS[state.format];
+  const fmt  = getFormat();
   const cW   = fmt.w;
   const cH   = fmt.h;
   state.creatures = [];
@@ -1638,9 +1662,8 @@ function rebuildCreatureGrid(creature) {
   const sRows = Math.round(sCols * ASSEMBLE_ROWS / ASSEMBLE_COLS);
   let grid = scaleGrid(canvas, sCols, sRows);
   if (dna.facing < 0) grid = flipGrid(grid);
-  for (let r = 0; r < (dna.extraRotation || 0); r++) grid = rotate90Grid(grid);
   creature.grid = grid;
-  const fmt    = FORMATS[state.format];
+  const fmt    = getFormat();
   const bounds = spriteBounds(grid);
   const count  = state.creatures.length;
   const fill   = count === 1 ? 0.88 : 0.44;
@@ -1681,19 +1704,17 @@ function wireUI(p) {
     p.loop();
   });
 
-  document.getElementById('eff-scallop').addEventListener('click', function () {
-    state.effects.SCALLOPED = !state.effects.SCALLOPED;
-    this.classList.toggle('on', state.effects.SCALLOPED);
-    state.needsRedraw = true;
-    p.loop();
-  });
-
-  const slider    = document.getElementById('slider-pixel');
+const slider    = document.getElementById('slider-pixel');
   const metaPixel = document.getElementById('meta-pixel');
   slider.addEventListener('input', () => {
     state.pixelCols = parseInt(slider.value, 10);
     metaPixel.textContent = `${state.pixelCols} columnas`;
-    generateCreatures(dogCount, true);
+    if (state.creatures.length) {
+      for (const c of state.creatures) rebuildCreatureGrid(c);
+      state.needsRedraw = true;
+    } else {
+      generateCreatures(dogCount);
+    }
     p.loop();
   });
 
@@ -1719,9 +1740,12 @@ function wireUI(p) {
   });
   document.getElementById('bp-patas').addEventListener('click', () => {
     mutatePart((dna, g) => {
-      dna.legType  = Ri(LEG_TEMPLATES.length);
-      g.legLength  = Rp(0.4, 0.6, 0.8, 1.0, 1.3, 1.6);
-      g.legCount   = Rp(0, 2, 4, 4, 4);
+      dna.legType = Ri(LEG_TEMPLATES.length);
+      g.legCount  = Rp(0, 2, 4, 4, 4);
+      // stick legs (template 5) get stretched aggressively by default
+      g.legLength = LEG_TEMPLATES[dna.legType].style === 'stick'
+        ? Rp(1.5, 2.0, 2.5, 3.0, 3.5)
+        : Rp(0.4, 0.6, 0.8, 1.0, 1.3, 1.6);
     });
     p.loop();
   });
@@ -1740,7 +1764,8 @@ function wireUI(p) {
     p.loop();
   });
   document.getElementById('bp-voltear').addEventListener('click', () => {
-    mutatePart((dna) => { dna.extraRotation = ((dna.extraRotation || 0) + 1) % 4; });
+    state.landscape = !state.landscape;
+    applyLandscape(p);
     p.loop();
   });
   document.getElementById('bp-largo').addEventListener('click', () => {
@@ -1783,18 +1808,28 @@ function switchFormat(p, fmt) {
   state.format = fmt;
   document.getElementById('btn-a4').classList.toggle('active', fmt === 'A4');
   document.getElementById('btn-a3').classList.toggle('active', fmt === 'A3');
-  const f = FORMATS[fmt];
+  const f = getFormat();
   if (pg) pg.remove();
   pg = p.createGraphics(f.w, f.h);
-  generateCreatures(state.creatures.length || 1, true);
+  for (const c of state.creatures) rebuildCreatureGrid(c);
+  if (!state.creatures.length) generateCreatures(1);
   state.needsRedraw = true;
   p.loop();
 }
 
+function applyLandscape(p) {
+  const f = getFormat();
+  if (pg) pg.remove();
+  pg = p.createGraphics(f.w, f.h);
+  for (const c of state.creatures) rebuildCreatureGrid(c);
+  state.needsRedraw = true;
+}
+
 function exportPNG() {
   if (!pg) return;
+  const suffix = state.format.toLowerCase() + (state.landscape ? '-h' : '');
   const link = document.createElement('a');
-  link.download = `doggo-prints-${state.format.toLowerCase()}.png`;
+  link.download = `doggo-prints-${suffix}.png`;
   link.href = pg.elt.toDataURL('image/png');
   link.click();
 }
@@ -1802,9 +1837,12 @@ function exportPNG() {
 function exportPDF() {
   if (!pg || typeof jspdf === 'undefined') return;
   const { jsPDF } = jspdf;
-  const isA4 = state.format === 'A4';
-  const doc  = new jsPDF({ orientation: 'portrait', unit: 'mm', format: isA4 ? 'a4' : 'a3' });
-  doc.addImage(pg.elt.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0,
-    isA4 ? 210 : 297, isA4 ? 297 : 420);
-  doc.save(`doggo-prints-${state.format.toLowerCase()}.pdf`);
+  const isA4  = state.format === 'A4';
+  const ori   = state.landscape ? 'landscape' : 'portrait';
+  const paper = isA4 ? 'a4' : 'a3';
+  const doc   = new jsPDF({ orientation: ori, unit: 'mm', format: paper });
+  const mmW   = isA4 ? (state.landscape ? 297 : 210) : (state.landscape ? 420 : 297);
+  const mmH   = isA4 ? (state.landscape ? 210 : 297) : (state.landscape ? 297 : 420);
+  doc.addImage(pg.elt.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, mmW, mmH);
+  doc.save(`doggo-prints-${paper}${state.landscape ? '-h' : ''}.pdf`);
 }
