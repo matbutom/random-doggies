@@ -276,3 +276,51 @@ input[type="range"]::-moz-range-thumb {
   max-width: 100%;
   max-height: 100%;
 }
+
+/* ── RESPONSIVE: MÓVILES Y TABLETS ───────────────────────────── */
+
+@media (max-width: 820px) {
+  .app {
+    flex-direction: column;
+  }
+
+  /* 1. El lienzo se va arriba y ocupa el 45% de la pantalla */
+  .canvas-area {
+    width: 100vw;
+    height: 45vh;
+    order: 1; /* Forzamos que vaya arriba */
+    flex: none;
+  }
+
+  /* 2. El panel se va abajo, ocupa el 55% y permite scroll */
+  .sidebar {
+    width: 100vw;
+    min-width: 100vw;
+    height: 55vh;
+    order: 2; /* Forzamos que vaya abajo */
+    border-right: none;
+    border-top: 2px solid #D0CCC4;
+    padding: 20px;
+  }
+
+  /* 3. Acomodamos los botones del cuerpo en 2 columnas para ahorrar espacio */
+  #panel-generate .section:nth-of-type(3) {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  
+  #panel-generate .section:nth-of-type(3) .section-label {
+    grid-column: span 2;
+    margin-bottom: 2px;
+  }
+
+  /* El slider de píxeles también necesita un pequeño ajuste */
+  #panel-generate .section:nth-of-type(4) {
+    margin-top: 16px;
+  }
+  
+  .sidebar-bottom {
+    padding-bottom: 24px; /* Margen para el área segura de iPhone */
+  }
+}

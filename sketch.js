@@ -720,15 +720,7 @@ const SNOUT_TEMPLATES = [
 const BODY_TEMPLATES = [
   // 0 — round body
   {
-    size: "medium",
-    neckAnchor: [10, 1],
-    tailAnchor: [0, 2],
-    legAnchors: [
-      [3, 6],
-      [5, 6],
-      [7, 6],
-      [9, 6],
-    ],
+    size: "medium", neckAnchor: [10, 1], tailAnchor: [0, 2], legAnchors: [[3, 6], [5, 6], [7, 6], [9, 6]],
     grid: [
       [0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0],
       [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
@@ -740,15 +732,7 @@ const BODY_TEMPLATES = [
   },
   // 1 — Athletic S-Curve (High-Res)
   {
-    size: "long",
-    neckAnchor: [13, 2],
-    tailAnchor: [0, 3],
-    legAnchors: [
-      [3, 9],
-      [5, 9],
-      [10, 9],
-      [12, 9],
-    ],
+    size: "long", neckAnchor: [13, 2], tailAnchor: [0, 3], legAnchors: [[3, 9], [5, 9], [10, 9], [12, 9]],
     grid: [
       [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0],
       [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0],
@@ -759,20 +743,12 @@ const BODY_TEMPLATES = [
       [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0],
       [0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0],
       [0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0],
-      [0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0],
-    ],
+      [0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0]
+    ]
   },
   // 2 — Fluffy Beast (High-Res)
   {
-    size: "heavy",
-    neckAnchor: [11, 2],
-    tailAnchor: [0, 4],
-    legAnchors: [
-      [2, 9],
-      [5, 9],
-      [8, 9],
-      [11, 9],
-    ],
+    size: "heavy", neckAnchor: [11, 2], tailAnchor: [0, 4], legAnchors: [[2, 9], [5, 9], [8, 9], [11, 9]],
     grid: [
       [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0],
       [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
@@ -783,19 +759,12 @@ const BODY_TEMPLATES = [
       [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
       [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
       [0, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 0],
-      [0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0],
-    ],
+      [0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0]
+    ]
   },
   // 3 — compact body
   {
-    size: "compact",
-    neckAnchor: [7, 1],
-    tailAnchor: [0, 1],
-    legAnchors: [
-      [2, 4],
-      [4, 4],
-      [6, 4],
-    ],
+    size: "compact", neckAnchor: [7, 1], tailAnchor: [0, 1], legAnchors: [[2, 4], [4, 4], [6, 4]],
     grid: [
       [0, 1, 1, 1, 1, 1, 1, 0],
       [1, 1, 1, 1, 1, 1, 1, 1],
@@ -805,15 +774,7 @@ const BODY_TEMPLATES = [
   },
   // 4 — tall upright body
   {
-    size: "medium",
-    neckAnchor: [8, 1],
-    tailAnchor: [0, 1],
-    legAnchors: [
-      [2, 6],
-      [4, 6],
-      [6, 6],
-      [8, 6],
-    ],
+    size: "medium", neckAnchor: [8, 1], tailAnchor: [0, 1], legAnchors: [[2, 6], [4, 6], [6, 6], [8, 6]],
     grid: [
       [0, 1, 1, 1, 1, 1, 1, 1, 0],
       [1, 1, 1, 1, 1, 1, 1, 1, 1],
@@ -823,6 +784,61 @@ const BODY_TEMPLATES = [
       [0, 1, 1, 1, 1, 1, 1, 1, 0],
     ],
   },
+  // 5 — El "Salchicha" (Extra Long Dachshund)
+  {
+    size: "long", neckAnchor: [15, 2], tailAnchor: [0, 2], legAnchors: [[2, 5], [4, 5], [12, 5], [14, 5]],
+    grid: [
+      [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+      [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+      [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+      [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+      [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+      [0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0]
+    ]
+  },
+  // 6 — El "Pecho Paloma" (Heavy Gorilla-like)
+  {
+    size: "heavy", neckAnchor: [10, 1], tailAnchor: [0, 6], legAnchors: [[2, 9], [4, 9], [8, 9], [11, 9]],
+    grid: [
+      [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0],
+      [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1],
+      [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1],
+      [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+      [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+      [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+      [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
+      [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0],
+      [1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0],
+      [1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0]
+    ]
+  },
+  // 7 — El "Frijolito" (Tiny Bean)
+  {
+    size: "compact", neckAnchor: [6, 1], tailAnchor: [0, 2], legAnchors: [[1, 5], [5, 5]],
+    grid: [
+      [0, 1, 1, 1, 1, 1, 1, 0],
+      [1, 1, 1, 1, 1, 1, 1, 1],
+      [1, 1, 1, 1, 1, 1, 1, 1],
+      [1, 1, 1, 1, 1, 1, 1, 1],
+      [0, 1, 1, 1, 1, 1, 1, 0],
+      [0, 1, 0, 0, 0, 1, 0, 0]
+    ]
+  },
+  // 8 — El "Escalonado" (Geometric / Voxel Steps)
+  {
+    size: "medium", neckAnchor: [11, 1], tailAnchor: [0, 5], legAnchors: [[2, 8], [5, 8], [8, 8], [11, 8]],
+    grid: [
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0],
+      [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1],
+      [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1],
+      [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+      [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+      [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+      [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+      [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
+      [0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0]
+    ]
+  }
 ];
 
 const LEG_TEMPLATES = [
@@ -1910,14 +1926,25 @@ new p5(function (p) {
     state.needsRedraw = false;
     renderFrame(p);
   };
+
+  // NUEVO: Esto escucha cuando giras el teléfono o cambias el tamaño de ventana
+  p.windowResized = function () {
+    const dims = scaledDims();
+    p.resizeCanvas(dims.w, dims.h);
+    state.needsRedraw = true;
+    p.loop(); // Forzamos a que se redibuje con el nuevo tamaño
+  };
 });
 
 function scaledDims() {
   const fmt = getFormat();
-  const wrapper = document.getElementById("canvas-wrapper");
-  const availW = wrapper.clientWidth || window.innerWidth - 260;
-  const availH = wrapper.clientHeight || window.innerHeight;
-  const scale = Math.min(availW / fmt.w, availH / fmt.h) * 0.96;
+  // NUEVO: Ahora medimos el contenedor real (.canvas-area) en lugar de asumir 260px
+  const area = document.querySelector('.canvas-area');
+  const availW = area.clientWidth;
+  const availH = area.clientHeight;
+  
+  // Usamos 0.90 para dejar un bonito margen alrededor del papel
+  const scale = Math.min(availW / fmt.w, availH / fmt.h) * 0.90;
   return { w: Math.floor(fmt.w * scale), h: Math.floor(fmt.h * scale) };
 }
 
