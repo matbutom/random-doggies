@@ -1960,6 +1960,7 @@ const state = {
     roundness: 0,
     texture: false,
   },
+  history: [],
 };
 
 function mulberry32(seed) {
@@ -1972,7 +1973,88 @@ function mulberry32(seed) {
   };
 }
 
-let pg, rng, blobCanvas, finalBlobCanvas;
+let pg, rng, blobCanvas, finalBlobCanvas, sketchP;
+
+// ── HISTORY / UNDO ──────────────────────────────────────────────────────────
+const HISTORY_LIMIT = 30;
+
+function cloneCreatureState(creature) {
+  return {
+    ...creature,
+    grid: creature.grid.map((row) => Array.from(row)),
+    dna: JSON.parse(JSON.stringify(creature.dna)),
+    genes: JSON.parse(JSON.stringify(creature.genes)),
+  };
+}
+
+function createStateSnapshot() {
+  return {
+    pixelCols: state.pixelCols,
+    seed: state.seed,
+    format: state.format,
+    landscape: state.landscape,
+    effects: JSON.parse(JSON.stringify(state.effects)),
+    creatures: state.creatures.map(cloneCreatureState),
+  };
+}
+
+function restoreStateSnapshot(snapshot) {
+  state.pixelCols = snapshot.pixelCols;
+  state.seed = snapshot.seed;
+  state.format = snapshot.format;
+  state.landscape = snapshot.landscape;
+  state.effects = JSON.parse(JSON.stringify(snapshot.effects));
+  state.creatures = snapshot.creatures.map((c) => cloneCreatureState(c));
+  syncUI();
+}
+
+function pushHistory() {
+  const snapshot = createStateSnapshot();
+  state.history.push(snapshot);
+  if (state.history.length > HISTORY_LIMIT) state.history.shift();
+}
+
+function undo() {
+  if (!state.history.length) return;
+  const snapshot = state.history.pop();
+  restoreStateSnapshot(snapshot);
+  state.needsRedraw = true;
+  if (sketchP) sketchP.loop();
+}
+
+function syncUI() {
+  const slider = document.getElementById("slider-pixel");
+  const metaPixel = document.getElementById("meta-pixel");
+  const sliderRound = document.getElementById("slider-round");
+  const ditherBtn = document.getElementById("btn-dither");
+  const metaDogs = document.getElementById("meta-dogs");
+  const btnA4 = document.getElementById("btn-a4");
+  const btnA3 = document.getElementById("btn-a3");
+
+  if (slider) slider.value = state.pixelCols;
+  if (metaPixel) metaPixel.textContent = `${state.pixelCols} columnas`;
+  if (sliderRound) sliderRound.value = state.effects.roundness;
+  if (ditherBtn) {
+    ditherBtn.classList.toggle("on", state.effects.dither);
+    ditherBtn.textContent = state.effects.dither
+      ? "[ dithered: on ]"
+      : "[ dithered: off ]";
+  }
+  if (btnA4) btnA4.classList.toggle("active", state.format === "A4");
+  if (btnA3) btnA3.classList.toggle("active", state.format === "A3");
+  const btnUndo = document.getElementById("btn-undo");
+  if (btnUndo) {
+    btnUndo.disabled = state.history.length === 0;
+    btnUndo.classList.toggle("disabled", state.history.length === 0);
+  }
+  if (metaDogs) {
+    const label =
+      state.creatures.length > 0 ? state.creatures[0].species : "creature";
+    metaDogs.textContent = `× ${state.creatures.length} ${label}${
+      state.creatures.length > 1 ? "s" : ""
+    }`;
+  }
+}
 
 // ── SKETCH ─────────────────────────────────────────────────────────────────
 
@@ -1981,6 +2063,7 @@ new p5(function (p) {
     const wrapper = document.getElementById("canvas-wrapper");
     const dims = scaledDims();
     p.createCanvas(dims.w, dims.h).parent(wrapper);
+    sketchP = p;
     p.noLoop();
     const fmt = getFormat();
     pg = p.createGraphics(fmt.w, fmt.h);
@@ -1992,6 +2075,7 @@ new p5(function (p) {
 
     wireUI(p);
     generateCreatures(1);
+    syncUI();
   };
 
   p.draw = function () {
@@ -2712,6 +2796,7 @@ function rebuildCreatureGrid(creature) {
 }
 
 function mutatePart(fn) {
+  pushHistory();
   for (const c of state.creatures) {
     if (c.dna && c.genes) {
       fn(c.dna, c.genes);
@@ -2728,6 +2813,7 @@ function wireUI(p) {
 
   // Botón Randomize
   document.getElementById("btn-dogs").addEventListener("click", () => {
+    pushHistory();
     generateCreatures(dogCount);
     p.loop();
   });
@@ -2736,10 +2822,18 @@ function wireUI(p) {
   const metaDogs = document.getElementById("meta-dogs");
   metaDogs.style.cursor = "pointer";
   metaDogs.addEventListener("click", () => {
+    pushHistory();
     dogCount = dogCount === 1 ? 2 : 1;
     generateCreatures(dogCount);
     p.loop();
   });
+
+  const btnUndo = document.getElementById("btn-undo");
+  if (btnUndo) {
+    btnUndo.addEventListener("click", () => {
+      undo();
+    });
+  }
 
   // Slider de resolución (Píxeles)
   const slider = document.getElementById("slider-pixel");
@@ -2747,12 +2841,14 @@ function wireUI(p) {
 
   // Slider de Redondeo
   const sliderRound = document.getElementById("slider-round");
+  sliderRound.addEventListener("pointerdown", pushHistory);
   sliderRound.addEventListener("input", () => {
     state.effects.roundness = parseInt(sliderRound.value, 10);
     state.needsRedraw = true;
     p.loop();
   });
 
+  slider.addEventListener("pointerdown", pushHistory);
   slider.addEventListener("input", () => {
     state.pixelCols = parseInt(slider.value, 10);
     metaPixel.textContent = `${state.pixelCols} columnas`;
@@ -2775,6 +2871,7 @@ function wireUI(p) {
   const Rp = (...arr) => arr[Ri(arr.length)];
 
   document.getElementById("btn-dither").addEventListener("click", (e) => {
+    pushHistory();
     state.effects.dither = !state.effects.dither;
 
     // Cambiar visualmente el botón
@@ -2840,6 +2937,7 @@ function wireUI(p) {
     p.loop();
   });
   document.getElementById("bp-voltear").addEventListener("click", () => {
+    pushHistory();
     state.landscape = !state.landscape;
     applyLandscape(p);
     p.loop();
@@ -2865,6 +2963,7 @@ function wireUI(p) {
   });
 
   document.getElementById("btn-recolor").addEventListener("click", () => {
+    pushHistory();
     for (const creature of state.creatures) {
       let c;
       do {
@@ -2886,12 +2985,21 @@ function wireUI(p) {
 
   document
     .getElementById("btn-a4")
-    .addEventListener("click", () => switchFormat(p, "A4"));
+    .addEventListener("click", () => {
+      pushHistory();
+      switchFormat(p, "A4");
+    });
   document
     .getElementById("btn-a3")
-    .addEventListener("click", () => switchFormat(p, "A3"));
+    .addEventListener("click", () => {
+      pushHistory();
+      switchFormat(p, "A3");
+    });
   document.getElementById("btn-png").addEventListener("click", exportPNG);
   document.getElementById("btn-pdf").addEventListener("click", exportPDF);
+
+  // Undo shortcut
+  document.addEventListener("keydown", handleUndoShortcut);
 }
 
 function switchFormat(p, fmt) {
@@ -2905,6 +3013,13 @@ function switchFormat(p, fmt) {
   if (!state.creatures.length) generateCreatures(1);
   state.needsRedraw = true;
   p.loop();
+}
+
+function handleUndoShortcut(e) {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {
+    undo();
+    e.preventDefault();
+  }
 }
 
 function applyLandscape(p) {
