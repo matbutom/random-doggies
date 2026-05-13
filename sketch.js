@@ -25,6 +25,7 @@ const PALETTE = [
   "#E86060", // rojo
 ];
 const BLACK = "#1A1A1A";
+const MAX_DETAIL_COLS = 150;
 
 // ── HAND-CRAFTED TEMPLATES ──────────────────────────────────────────────────
 // 0=empty · 1=body color · 2=black
@@ -1957,6 +1958,7 @@ const state = {
   effects: {
     dither: false,
     roundness: 0,
+    texture: false,
   },
 };
 
@@ -2210,19 +2212,24 @@ const RED_ACCENT = "#CC2020";
 
 function drawCell(g, px, py, cs, val, color) {
   g.noStroke();
-  
+
   if (val === 1) {
     // ¡Restricción eliminada! Ahora el dither funciona siempre que el botón esté activo.
     if (state.effects.dither) {
       let gridX = Math.floor(px / cs);
       let gridY = Math.floor(py / cs);
-      const bayer = [[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]];
-      
+      const bayer = [
+        [0, 8, 2, 10],
+        [12, 4, 14, 6],
+        [3, 11, 1, 9],
+        [15, 7, 13, 5],
+      ];
+
       // Aseguramos que tome la primera criatura como referencia de altura
       let creature = state.creatures[0];
       let relativeY = (py - creature.startY) / (creature.grid.length * cs);
-      let threshold = relativeY * 18; 
-      
+      let threshold = relativeY * 18;
+
       if (bayer[gridY % 4][gridX % 4] < threshold) {
         g.fill(darkenHex(color, 0.85));
       } else {
@@ -2231,12 +2238,11 @@ function drawCell(g, px, py, cs, val, color) {
     } else {
       g.fill(color);
     }
-  } 
-  else if (val === 3) g.fill(darkenHex(color, 0.55));
+  } else if (val === 3) g.fill(darkenHex(color, 0.55));
   else if (val === 4) g.fill(RED_ACCENT);
   else g.fill(BLACK);
 
-  // Dibujamos el bloque. 
+  // Dibujamos el bloque.
   // cs + 1 previene líneas blancas entre píxeles antes de aplicar el filtro.
   g.rect(px, py, cs + 1, cs + 1);
 }
@@ -2399,13 +2405,123 @@ function mutateGrid(src, rng) {
 function scaleGrid(src, tCols, tRows) {
   const sRows = src.length,
     sCols = src[0].length;
-  return Array.from({ length: tRows }, (_, r) => {
-    const sr = Math.floor((r / tRows) * sRows);
-    return Uint8Array.from(
-      { length: tCols },
-      (_, c) => src[sr][Math.floor((c / tCols) * sCols)],
+
+  if (sCols === tCols && sRows === tRows) {
+    return src.map((row) => Uint8Array.from(row));
+  }
+
+  const isShrinking = sCols > tCols || sRows > tRows;
+
+  const scaled = Array.from({ length: tRows }, (_, r) => {
+    if (!isShrinking) {
+      const sr = Math.floor((r / tRows) * sRows);
+      return Uint8Array.from(
+        { length: tCols },
+        (_, c) => src[sr][Math.floor((c / tCols) * sCols)],
+      );
+    }
+
+    const y0 = Math.floor((r * sRows) / tRows);
+    const y1 = Math.min(
+      sRows - 1,
+      Math.max(y0, Math.floor(((r + 1) * sRows) / tRows) - 1),
     );
+
+    return Uint8Array.from({ length: tCols }, (_, c) => {
+      const x0 = Math.floor((c * sCols) / tCols);
+      const x1 = Math.min(
+        sCols - 1,
+        Math.max(x0, Math.floor(((c + 1) * sCols) / tCols) - 1),
+      );
+
+      const counts = [0, 0, 0, 0, 0];
+      for (let sy = y0; sy <= y1; sy++) {
+        for (let sx = x0; sx <= x1; sx++) {
+          counts[src[sy][sx]]++;
+        }
+      }
+
+      // Preferir detalles: mocos oscuros / acentos sobre color base, y color base sobre vacío.
+      const order = [2, 4, 3, 1, 0];
+      let bestValue = 0;
+      let bestCount = -1;
+      for (const val of order) {
+        if (counts[val] > bestCount) {
+          bestCount = counts[val];
+          bestValue = val;
+        }
+      }
+      return bestValue;
+    });
   });
+
+  return scaled;
+}
+
+function getGridValue(grid, r, c) {
+  if (r < 0 || r >= grid.length || c < 0 || c >= grid[0].length) return 0;
+  return grid[r][c];
+}
+
+function refineHighResGrid(grid) {
+  const rows = grid.length;
+  const cols = grid[0].length;
+  const result = grid.map((row) => Uint8Array.from(row));
+
+  const isBody = (v) => v === 1 || v === 3 || v === 4;
+  const isSolid = (v) => v !== 0;
+
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      if (grid[r][c] !== 0) continue;
+
+      const n = {
+        N: getGridValue(grid, r - 1, c),
+        S: getGridValue(grid, r + 1, c),
+        W: getGridValue(grid, r, c - 1),
+        E: getGridValue(grid, r, c + 1),
+        NW: getGridValue(grid, r - 1, c - 1),
+        NE: getGridValue(grid, r - 1, c + 1),
+        SW: getGridValue(grid, r + 1, c - 1),
+        SE: getGridValue(grid, r + 1, c + 1),
+      };
+
+      const bodyCount =
+        [n.N, n.S, n.W, n.E, n.NW, n.NE, n.SW, n.SE].filter(isBody).length;
+      const solidCount =
+        [n.N, n.S, n.W, n.E, n.NW, n.NE, n.SW, n.SE].filter(isSolid)
+          .length;
+
+      // Añadir relleno en esquinas cóncavas.
+      if (
+        isBody(n.N) && isBody(n.W) && !isBody(n.NW) ||
+        isBody(n.N) && isBody(n.E) && !isBody(n.NE) ||
+        isBody(n.S) && isBody(n.W) && !isBody(n.SW) ||
+        isBody(n.S) && isBody(n.E) && !isBody(n.SE)
+      ) {
+        result[r][c] = 1;
+        continue;
+      }
+
+      // Si hay muchos vecinos sólidos, rellenamos para suavizar la curva.
+      if (bodyCount >= 3 && solidCount >= 4) {
+        result[r][c] = 1;
+        continue;
+      }
+
+      // Añadir detalles de patitas y dedos: cuando hay una columna de piernas negras
+      // y una celda vacía debajo, agregamos un píxel para hacer la pata más compleja.
+      if (
+        n.S === 0 &&
+        (n.W === 2 || n.E === 2) &&
+        (n.N === 2 || n.NW === 2 || n.NE === 2)
+      ) {
+        result[r][c] = 2;
+      }
+    }
+  }
+
+  return result;
 }
 
 function flipGrid(grid) {
@@ -2483,8 +2599,8 @@ function generateCreatures(count, keepSeed = false) {
     addDetails(rawCanvas, dna, skeleton, tmpl);
     applyMutations(rawCanvas, dna, skeleton);
 
-    // Escalamos el ensamble a la base de 100 columnas para máximo detalle
-    const baseRes = 100;
+    // Escalamos el ensamble a la base más detallada disponible para luego sintetizar.
+    const baseRes = Math.max(MAX_DETAIL_COLS, state.pixelCols);
     const sRows = Math.round((baseRes * ASSEMBLE_ROWS) / ASSEMBLE_COLS);
     intermediateCanvas = scaleGrid(rawCanvas, baseRes, sRows);
 
@@ -2495,6 +2611,7 @@ function generateCreatures(count, keepSeed = false) {
       (sCols * intermediateCanvas.length) / intermediateCanvas[0].length,
     );
     grid = scaleGrid(intermediateCanvas, sCols, finalRows);
+    grid = refineHighResGrid(grid);
 
     // ── 3. POSICIONAMIENTO Y CELLSIZE ──
     const bounds = spriteBounds(grid);
@@ -2553,9 +2670,9 @@ function rebuildCreatureGrid(creature) {
   applyMutations(canvas, dna, skeleton);
 
   // --- CAMBIO 3: UNIFICACIÓN DE RESOLUCIÓN ---
-  // Antes de escalar al slider, pasamos por una resolución base de 100
-  // para que el dithering y los detalles tengan densidad real.
-  const baseRes = 100;
+  // Antes de escalar al slider, pasamos por una resolución base de detalle máximo
+  // para que la misma forma pueda sintetizarse con menos píxeles.
+  const baseRes = Math.max(MAX_DETAIL_COLS, sCols);
   const interRows = Math.round((baseRes * ASSEMBLE_ROWS) / ASSEMBLE_COLS);
   let highResCanvas = scaleGrid(canvas, baseRes, interRows);
 
@@ -2564,6 +2681,7 @@ function rebuildCreatureGrid(creature) {
     (sCols * highResCanvas.length) / highResCanvas[0].length,
   );
   let grid = scaleGrid(highResCanvas, sCols, sRows);
+  grid = refineHighResGrid(grid);
   // -------------------------------------------
 
   if (dna.facing < 0) grid = flipGrid(grid);
@@ -2574,7 +2692,7 @@ function rebuildCreatureGrid(creature) {
   const count = state.creatures.length;
   const fill = count === 1 ? 0.88 : 0.44;
 
-  // Ajuste de cellSize basado en bounds para mantener el tamaño en pantalla
+  // Ajuste de cellSize basado en el tamaño visible real de la criatura.
   const csW = (fmt.w * fill) / bounds.w;
   const csH = (fmt.h * fill) / bounds.h;
   const cs = Math.max(1, Math.min(csW, csH));
