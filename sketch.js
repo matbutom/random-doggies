@@ -2853,11 +2853,10 @@ function wireUI(p) {
     state.pixelCols = parseInt(slider.value, 10);
     metaPixel.textContent = `${state.pixelCols} columnas`;
 
-    // Si ya hay criaturas, las regeneramos usando la misma semilla (seed)
-    // pero con la nueva resolución. Esto permite ver cómo la MISMA criatura
-    // se vuelve más definida sin cambiar su forma aleatoria.
     if (state.creatures.length) {
-      generateCreatures(state.creatures.length, true);
+      for (const creature of state.creatures) {
+        rebuildCreatureGrid(creature);
+      }
     } else {
       generateCreatures(dogCount);
     }
