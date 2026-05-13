@@ -2,75 +2,88 @@
   index.html — Doggo Prints layout, sidebar, canvas container
   version: MVP 0.5
 -->
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Doggo Prints</title>
-  <link rel="stylesheet" href="style.css" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
-</head>
-<body>
-  <div class="app">
-    <aside class="sidebar">
-      <div class="sidebar-title">RANDOM ANIMALS<br>OF THE WORLD :)</div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>random animals of the world :)</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar">
+        <div class="sidebar-title">RANDOM ANIMALS<br />OF THE WORLD :)</div>
 
-      <!-- Generate panel -->
-      <div id="panel-generate">
-        <div class="section">
-          <div class="section-label">GENERAR</div>
-          <button class="btn" id="btn-dogs">[ randomize ]</button>
-          <div class="section-meta" id="meta-dogs">× 1 dog</div>
-        </div>
-
-        <div class="section">
-          <div class="section-label">EFECTOS</div>
-          <button class="btn btn-effect" id="btn-recolor">[ nuevo color ]</button>
-        </div>
-
-        <div class="section">
-          <div class="section-label">CUERPO</div>
-          <button class="btn btn-part" id="bp-cola">[ cola ]</button>
-          <button class="btn btn-part" id="bp-ojos">[ ojos ]</button>
-          <button class="btn btn-part" id="bp-patas">[ patas ]</button>
-          <button class="btn btn-part" id="bp-nariz">[ nariz ]</button>
-          <button class="btn btn-part" id="bp-cuerpo">[ cuerpo ]</button>
-          <button class="btn btn-part" id="bp-voltear">[ voltear ]</button>
-          <button class="btn btn-part" id="bp-largo">[ largo ]</button>
-          <button class="btn btn-part" id="bp-ancho">[ ancho ]</button>
-        </div>
-
-        <div class="section">
-          <div class="section-label">PÍXELES</div>
-          <div class="slider-row">
-            <input type="range" id="slider-pixel" min="6" max="40" step="1" value="20" />
+        <!-- Generate panel -->
+        <div id="panel-generate">
+          <div class="section">
+            <div class="section-label">GENERAR</div>
+            <button class="btn" id="btn-dogs">[ randomize ]</button>
+            <div class="section-meta" id="meta-dogs">× 1 dog</div>
           </div>
-          <div class="section-meta" id="meta-pixel">20 columnas</div>
+
+          <div class="section">
+            <div class="section-label">EFECTOS</div>
+            <button class="btn btn-effect" id="btn-recolor">
+              [ nuevo color ]
+            </button>
+            <button class="btn btn-effect" id="btn-dither">[ dithered ]</button>
+          </div>
+
+          <div class="section">
+            <div class="section-label">CUERPO</div>
+            <button class="btn btn-part" id="bp-orejas">[ orejas ]</button>
+            <button class="btn btn-part" id="bp-cola">[ cola ]</button>
+            <button class="btn btn-part" id="bp-ojos">[ ojos ]</button>
+            <button class="btn btn-part" id="bp-patas">[ patas ]</button>
+            <button class="btn btn-part" id="bp-nariz">[ nariz ]</button>
+            <button class="btn btn-part" id="bp-cuerpo">[ cuerpo ]</button>
+            <button class="btn btn-part" id="bp-voltear">[ voltear ]</button>
+            <button class="btn btn-part" id="bp-largo">[ largo ]</button>
+            <button class="btn btn-part" id="bp-ancho">[ ancho ]</button>
+          </div>
+
+          <div class="section">
+            <div class="section-label">PÍXELES</div>
+            <div class="slider-row">
+              <input
+                type="range"
+                id="slider-pixel"
+                min="20"
+                max="100"
+                step="1"
+                value="100"
+              />
+            </div>
+            <div class="section-meta" id="meta-pixel">100 columnas</div>
+          </div>
         </div>
-      </div>
 
-
-<div class="sidebar-bottom">
-        <div class="format-toggle">
-          <button class="toggle-btn active" id="btn-a4">A4</button>
-          <span class="toggle-sep">|</span>
-          <button class="toggle-btn" id="btn-a3">A3</button>
+        <div class="sidebar-bottom">
+          <div class="format-toggle">
+            <button class="toggle-btn active" id="btn-a4">A4</button>
+            <span class="toggle-sep">|</span>
+            <button class="toggle-btn" id="btn-a3">A3</button>
+          </div>
+          <button class="btn btn-export" id="btn-png">[ export PNG ]</button>
+          <button class="btn btn-export" id="btn-pdf">[ export PDF ]</button>
         </div>
-        <button class="btn btn-export" id="btn-png">[ export PNG ]</button>
-        <button class="btn btn-export" id="btn-pdf">[ export PDF ]</button>
-      </div>
-    </aside>
+      </aside>
 
-    <main class="canvas-area">
-      <div class="canvas-wrapper" id="canvas-wrapper"></div>
-    </main>
-  </div>
+      <main class="canvas-area">
+        <div class="canvas-wrapper" id="canvas-wrapper"></div>
+      </main>
+    </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="sketch.js"></script>
-</body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="sketch.js"></script>
+  </body>
 </html>
