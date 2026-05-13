@@ -720,7 +720,15 @@ const SNOUT_TEMPLATES = [
 const BODY_TEMPLATES = [
   // 0 — round body
   {
-    size: "medium", neckAnchor: [10, 1], tailAnchor: [0, 2], legAnchors: [[3, 6], [5, 6], [7, 6], [9, 6]],
+    size: "medium",
+    neckAnchor: [10, 1],
+    tailAnchor: [0, 2],
+    legAnchors: [
+      [3, 6],
+      [5, 6],
+      [7, 6],
+      [9, 6],
+    ],
     grid: [
       [0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0],
       [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
@@ -732,7 +740,15 @@ const BODY_TEMPLATES = [
   },
   // 1 — Athletic S-Curve (High-Res)
   {
-    size: "long", neckAnchor: [13, 2], tailAnchor: [0, 3], legAnchors: [[3, 9], [5, 9], [10, 9], [12, 9]],
+    size: "long",
+    neckAnchor: [13, 2],
+    tailAnchor: [0, 3],
+    legAnchors: [
+      [3, 9],
+      [5, 9],
+      [10, 9],
+      [12, 9],
+    ],
     grid: [
       [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0],
       [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0],
@@ -743,12 +759,20 @@ const BODY_TEMPLATES = [
       [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0],
       [0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0],
       [0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0],
-      [0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0]
-    ]
+      [0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0],
+    ],
   },
   // 2 — Fluffy Beast (High-Res)
   {
-    size: "heavy", neckAnchor: [11, 2], tailAnchor: [0, 4], legAnchors: [[2, 9], [5, 9], [8, 9], [11, 9]],
+    size: "heavy",
+    neckAnchor: [11, 2],
+    tailAnchor: [0, 4],
+    legAnchors: [
+      [2, 9],
+      [5, 9],
+      [8, 9],
+      [11, 9],
+    ],
     grid: [
       [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0],
       [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
@@ -759,12 +783,19 @@ const BODY_TEMPLATES = [
       [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
       [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
       [0, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 0],
-      [0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0]
-    ]
+      [0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0],
+    ],
   },
   // 3 — compact body
   {
-    size: "compact", neckAnchor: [7, 1], tailAnchor: [0, 1], legAnchors: [[2, 4], [4, 4], [6, 4]],
+    size: "compact",
+    neckAnchor: [7, 1],
+    tailAnchor: [0, 1],
+    legAnchors: [
+      [2, 4],
+      [4, 4],
+      [6, 4],
+    ],
     grid: [
       [0, 1, 1, 1, 1, 1, 1, 0],
       [1, 1, 1, 1, 1, 1, 1, 1],
@@ -774,7 +805,15 @@ const BODY_TEMPLATES = [
   },
   // 4 — tall upright body
   {
-    size: "medium", neckAnchor: [8, 1], tailAnchor: [0, 1], legAnchors: [[2, 6], [4, 6], [6, 6], [8, 6]],
+    size: "medium",
+    neckAnchor: [8, 1],
+    tailAnchor: [0, 1],
+    legAnchors: [
+      [2, 6],
+      [4, 6],
+      [6, 6],
+      [8, 6],
+    ],
     grid: [
       [0, 1, 1, 1, 1, 1, 1, 1, 0],
       [1, 1, 1, 1, 1, 1, 1, 1, 1],
@@ -786,19 +825,35 @@ const BODY_TEMPLATES = [
   },
   // 5 — El "Salchicha" (Extra Long Dachshund)
   {
-    size: "long", neckAnchor: [15, 2], tailAnchor: [0, 2], legAnchors: [[2, 5], [4, 5], [12, 5], [14, 5]],
+    size: "long",
+    neckAnchor: [15, 2],
+    tailAnchor: [0, 2],
+    legAnchors: [
+      [2, 5],
+      [4, 5],
+      [12, 5],
+      [14, 5],
+    ],
     grid: [
       [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
       [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
       [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
       [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
       [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-      [0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0]
-    ]
+      [0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0],
+    ],
   },
   // 6 — El "Pecho Paloma" (Heavy Gorilla-like)
   {
-    size: "heavy", neckAnchor: [10, 1], tailAnchor: [0, 6], legAnchors: [[2, 9], [4, 9], [8, 9], [11, 9]],
+    size: "heavy",
+    neckAnchor: [10, 1],
+    tailAnchor: [0, 6],
+    legAnchors: [
+      [2, 9],
+      [4, 9],
+      [8, 9],
+      [11, 9],
+    ],
     grid: [
       [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0],
       [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1],
@@ -809,24 +864,38 @@ const BODY_TEMPLATES = [
       [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
       [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0],
       [1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0],
-      [1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0]
-    ]
+      [1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0],
+    ],
   },
   // 7 — El "Frijolito" (Tiny Bean)
   {
-    size: "compact", neckAnchor: [6, 1], tailAnchor: [0, 2], legAnchors: [[1, 5], [5, 5]],
+    size: "compact",
+    neckAnchor: [6, 1],
+    tailAnchor: [0, 2],
+    legAnchors: [
+      [1, 5],
+      [5, 5],
+    ],
     grid: [
       [0, 1, 1, 1, 1, 1, 1, 0],
       [1, 1, 1, 1, 1, 1, 1, 1],
       [1, 1, 1, 1, 1, 1, 1, 1],
       [1, 1, 1, 1, 1, 1, 1, 1],
       [0, 1, 1, 1, 1, 1, 1, 0],
-      [0, 1, 0, 0, 0, 1, 0, 0]
-    ]
+      [0, 1, 0, 0, 0, 1, 0, 0],
+    ],
   },
   // 8 — El "Escalonado" (Geometric / Voxel Steps)
   {
-    size: "medium", neckAnchor: [11, 1], tailAnchor: [0, 5], legAnchors: [[2, 8], [5, 8], [8, 8], [11, 8]],
+    size: "medium",
+    neckAnchor: [11, 1],
+    tailAnchor: [0, 5],
+    legAnchors: [
+      [2, 8],
+      [5, 8],
+      [8, 8],
+      [11, 8],
+    ],
     grid: [
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0],
       [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1],
@@ -836,9 +905,9 @@ const BODY_TEMPLATES = [
       [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
       [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
       [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
-      [0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0]
-    ]
-  }
+      [0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0],
+    ],
+  },
 ];
 
 const LEG_TEMPLATES = [
@@ -1471,19 +1540,14 @@ function addSymmetricFeatures(canvas, dna, headC, headR, tmpl, genes) {
   const headW = head.grid[0].length;
 
   // Mirror eye
-// Mirror eye
+  // Mirror eye
   const eyeRelC = head.eyePos[0];
   const eyeW = eye.grid[0].length;
   const mirEyeRelC = headW - eyeRelC - eyeW;
   if (mirEyeRelC >= 0 && mirEyeRelC !== eyeRelC) {
     // Si el ojo tiene brillo, no queremos que se invierta el brillo a la izquierda
     // Lo ideal es estampar el ojo original, no el espejado.
-    stampPart(
-      canvas,
-      eye.grid, 
-      headC + mirEyeRelC,
-      headR + head.eyePos[1],
-    );
+    stampPart(canvas, eye.grid, headC + mirEyeRelC, headR + head.eyePos[1]);
   }
 
   // Mirror ear — skip for asymmetric gene (singleEar / extremeAsymmetry)
@@ -1886,12 +1950,13 @@ function applyMutations(canvas, dna, skeleton) {
 const state = {
   format: "A4",
   landscape: false,
-  pixelCols: 100, // CAMBIO: Debe decir 100 aquí
+  pixelCols: 100,
   seed: null,
   creatures: [],
   needsRedraw: true,
   effects: {
-    dither: false, // Sugerencia: Puedes activarlo por defecto también
+    dither: false,
+    roundness: 0,
   },
 };
 
@@ -1905,7 +1970,7 @@ function mulberry32(seed) {
   };
 }
 
-let pg, rng;
+let pg, rng, blobCanvas, finalBlobCanvas;
 
 // ── SKETCH ─────────────────────────────────────────────────────────────────
 
@@ -1917,6 +1982,12 @@ new p5(function (p) {
     p.noLoop();
     const fmt = getFormat();
     pg = p.createGraphics(fmt.w, fmt.h);
+
+    // Lienzo para dibujar los círculos borrosos
+    blobCanvas = p.createGraphics(fmt.w, fmt.h);
+    // Lienzo final donde aplicamos el contraste (threshold)
+    finalBlobCanvas = p.createGraphics(fmt.w, fmt.h);
+
     wireUI(p);
     generateCreatures(1);
   };
@@ -1939,27 +2010,188 @@ new p5(function (p) {
 function scaledDims() {
   const fmt = getFormat();
   // NUEVO: Ahora medimos el contenedor real (.canvas-area) en lugar de asumir 260px
-  const area = document.querySelector('.canvas-area');
+  const area = document.querySelector(".canvas-area");
   const availW = area.clientWidth;
   const availH = area.clientHeight;
-  
+
   // Usamos 0.90 para dejar un bonito margen alrededor del papel
-  const scale = Math.min(availW / fmt.w, availH / fmt.h) * 0.90;
+  const scale = Math.min(availW / fmt.w, availH / fmt.h) * 0.9;
+
   return { w: Math.floor(fmt.w * scale), h: Math.floor(fmt.h * scale) };
 }
 
+let creatureLayer;
+
 function renderFrame(p) {
   const fmt = getFormat();
-  if (!pg || pg.width !== fmt.w || pg.height !== fmt.h) {
+
+  if (!pg || !creatureLayer || pg.width !== fmt.w || pg.height !== fmt.h) {
     if (pg) pg.remove();
+    if (creatureLayer) creatureLayer.remove();
     pg = p.createGraphics(fmt.w, fmt.h);
+    creatureLayer = p.createGraphics(fmt.w, fmt.h); // Capa invisible
   }
+
   pg.background(CANVAS_BG);
-  for (const dog of state.creatures) render(pg, dog);
+
+  for (const dog of state.creatures) {
+    if (state.effects.roundness > 0) {
+      creatureLayer.clear();
+      // Dibujamos los bloques cuadrados en la capa transparente
+      drawPixelCreature(creatureLayer, dog);
+
+      // Ajustamos la fuerza del filtro según el slider y el tamaño del píxel
+      const blurVal = dog.cellSize * 0.4 * (state.effects.roundness / 10);
+      document.getElementById("goo-blur").setAttribute("stdDeviation", blurVal);
+
+      // Pegamos la capa aplicando el Filtro "Gooey" (GPU Acelerado)
+      pg.drawingContext.filter = "url(#goo)";
+      pg.image(creatureLayer, 0, 0);
+      pg.drawingContext.filter = "none"; // Reseteamos el filtro
+    } else {
+      // Si el slider es 0, dibujamos normal
+      drawPixelCreature(pg, dog);
+    }
+  }
+
   const dims = scaledDims();
   p.resizeCanvas(dims.w, dims.h);
   p.smooth();
   p.image(pg, 0, 0, dims.w, dims.h);
+}
+
+// ── NUEVO MOTOR LÍQUIDO (METABALLS) ──
+
+function drawBlobCreature(targetG, dog) {
+  const { grid, cellSize, startX, startY, color } = dog;
+
+  // 1. Limpiamos los lienzos temporales
+  blobCanvas.clear();
+  finalBlobCanvas.clear();
+
+  // 2. Dibujamos la criatura como círculos borrosos (blobs)
+  for (let r = 0; r < grid.length; r++) {
+    for (let c = 0; c < grid[r].length; c++) {
+      const val = grid[r][c];
+      if (val) {
+        drawCellBlob(
+          blobCanvas,
+          startX + c * cellSize,
+          startY + r * cellSize,
+          cellSize,
+          val,
+          color,
+        );
+      }
+    }
+  }
+
+  // 3. Aplicamos el contraste extremo (Threshold) para redondear uniones
+  finalBlobCanvas.image(blobCanvas, 0, 0);
+  finalBlobCanvas.loadPixels();
+
+  // Umbral de dureza del borde (160 es ideal para formas orgánicas)
+  const threshold = 160;
+
+  for (let i = 0; i < finalBlobCanvas.pixels.length; i += 4) {
+    // Si la opacidad del píxel supera el umbral, lo hacemos sólido
+    if (finalBlobCanvas.pixels[i + 3] > threshold) {
+      finalBlobCanvas.pixels[i + 3] = 255;
+    } else {
+      // Si no, lo hacemos 100% transparente
+      finalBlobCanvas.pixels[i + 3] = 0;
+    }
+  }
+  finalBlobCanvas.updatePixels();
+
+  // 4. Pegamos la criatura resultante en el lienzo principal
+  targetG.image(finalBlobCanvas, 0, 0);
+}
+
+function drawCellBlob(g, px, py, cs, val, color) {
+  g.noStroke();
+
+  if (val === 1) g.fill(color);
+  else if (val === 3) g.fill(darkenHex(color, 0.55));
+  else if (val === 4) g.fill(RED_ACCENT);
+  else g.fill(BLACK);
+
+  // Cuanto más alto el slider, más grande es el círculo
+  const expandFactor = 1 + state.effects.roundness / 10;
+  const blobSize = cs * expandFactor;
+
+  const centerX = px + cs / 2;
+  const centerY = py + cs / 2;
+
+  // Dibujamos círculos en lugar de cuadrados
+  g.ellipse(centerX, centerY, blobSize, blobSize);
+}
+
+// ── NUEVO MOTOR LÍQUIDO (METABALLS) ──
+
+function drawBlobCreature(targetG, dog) {
+  const { grid, cellSize, startX, startY, color } = dog;
+
+  // 1. Limpiamos los lienzos temporales
+  blobCanvas.clear();
+  finalBlobCanvas.clear();
+
+  // 2. Dibujamos la criatura como círculos borrosos (blobs)
+  for (let r = 0; r < grid.length; r++) {
+    for (let c = 0; c < grid[r].length; c++) {
+      const val = grid[r][c];
+      if (val) {
+        drawCellBlob(
+          blobCanvas,
+          startX + c * cellSize,
+          startY + r * cellSize,
+          cellSize,
+          val,
+          color,
+        );
+      }
+    }
+  }
+
+  // 3. Aplicamos el contraste extremo (Threshold) para redondear uniones
+  finalBlobCanvas.image(blobCanvas, 0, 0);
+  finalBlobCanvas.loadPixels();
+
+  // Umbral de dureza del borde (160 es ideal para formas orgánicas)
+  const threshold = 160;
+
+  for (let i = 0; i < finalBlobCanvas.pixels.length; i += 4) {
+    // Si la opacidad del píxel supera el umbral, lo hacemos sólido
+    if (finalBlobCanvas.pixels[i + 3] > threshold) {
+      finalBlobCanvas.pixels[i + 3] = 255;
+    } else {
+      // Si no, lo hacemos 100% transparente
+      finalBlobCanvas.pixels[i + 3] = 0;
+    }
+  }
+  finalBlobCanvas.updatePixels();
+
+  // 4. Pegamos la criatura resultante en el lienzo principal
+  targetG.image(finalBlobCanvas, 0, 0);
+}
+
+function drawCellBlob(g, px, py, cs, val, color) {
+  g.noStroke();
+
+  if (val === 1) g.fill(color);
+  else if (val === 3) g.fill(darkenHex(color, 0.55));
+  else if (val === 4) g.fill(RED_ACCENT);
+  else g.fill(BLACK);
+
+  // Cuanto más alto el slider, más grande es el círculo
+  const expandFactor = 1 + state.effects.roundness / 10;
+  const blobSize = cs * expandFactor;
+
+  const centerX = px + cs / 2;
+  const centerY = py + cs / 2;
+
+  // Dibujamos círculos en lugar de cuadrados
+  g.ellipse(centerX, centerY, blobSize, blobSize);
 }
 
 // ── COLOR HELPERS ──────────────────────────────────────────────────────────
@@ -1978,23 +2210,19 @@ const RED_ACCENT = "#CC2020";
 
 function drawCell(g, px, py, cs, val, color) {
   g.noStroke();
-
+  
   if (val === 1) {
+    // ¡Restricción eliminada! Ahora el dither funciona siempre que el botón esté activo.
     if (state.effects.dither) {
       let gridX = Math.floor(px / cs);
       let gridY = Math.floor(py / cs);
-      const bayer = [
-        [0, 8, 2, 10],
-        [12, 4, 14, 6],
-        [3, 11, 1, 9],
-        [15, 7, 13, 5],
-      ];
-
+      const bayer = [[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]];
+      
+      // Aseguramos que tome la primera criatura como referencia de altura
       let creature = state.creatures[0];
-      // Altura relativa para el degradado
       let relativeY = (py - creature.startY) / (creature.grid.length * cs);
-      let threshold = relativeY * 18; // Ajusta este 18 para más/menos sombra
-
+      let threshold = relativeY * 18; 
+      
       if (bayer[gridY % 4][gridX % 4] < threshold) {
         g.fill(darkenHex(color, 0.85));
       } else {
@@ -2003,12 +2231,14 @@ function drawCell(g, px, py, cs, val, color) {
     } else {
       g.fill(color);
     }
-  } else if (val === 3) g.fill(darkenHex(color, 0.55));
+  } 
+  else if (val === 3) g.fill(darkenHex(color, 0.55));
   else if (val === 4) g.fill(RED_ACCENT);
   else g.fill(BLACK);
 
-  // El +0.5 elimina la rejilla blanca entre píxeles
-  g.rect(px, py, cs + 0.5, cs + 0.5);
+  // Dibujamos el bloque. 
+  // cs + 1 previene líneas blancas entre píxeles antes de aplicar el filtro.
+  g.rect(px, py, cs + 1, cs + 1);
 }
 
 // ── PIPELINE STAGE 5 — render(g, dog) ──────────────────────────────────────
@@ -2023,7 +2253,8 @@ function drawPixelCreature(g, dog) {
   for (let r = 0; r < grid.length; r++) {
     for (let c = 0; c < grid[r].length; c++) {
       const val = grid[r][c];
-      if (val)
+      if (val) {
+        // Volvemos a la versión limpia y sencilla
         drawCell(
           g,
           startX + c * cellSize,
@@ -2032,6 +2263,7 @@ function drawPixelCreature(g, dog) {
           val,
           color,
         );
+      }
     }
   }
 }
@@ -2228,46 +2460,49 @@ function generateCreatures(count, keepSeed = false) {
     let speciesLabel = "creature";
     let dna = null;
     let genes = null;
-    let intermediateCanvas; 
+    let intermediateCanvas;
 
     // ── 1. GENERACIÓN DE ESTRUCTURA (100% Pipeline Dinámico / Modular) ──
-    
+
     dna = generateDNA(rng);
     genes = generateMorphologyGenes(rng);
     const tmpl = buildMorphedTemplates(dna, genes);
-    
+
     if (genes.forceMutations) {
       dna.mutations = [...new Set([...genes.forceMutations, ...dna.mutations])];
     }
-    
+
     creatureColor = PALETTE[dna.palette];
-    speciesLabel = genes.mutationType !== "COMMON"
+    speciesLabel =
+      genes.mutationType !== "COMMON"
         ? `${genes.variant} ${dna.speciesTraits.label}`
         : dna.speciesTraits.label;
-        
+
     const skeleton = buildSkeleton(dna, tmpl, genes);
     const rawCanvas = assembleBodyParts(dna, skeleton, tmpl, genes);
     addDetails(rawCanvas, dna, skeleton, tmpl);
     applyMutations(rawCanvas, dna, skeleton);
-    
+
     // Escalamos el ensamble a la base de 100 columnas para máximo detalle
     const baseRes = 100;
     const sRows = Math.round((baseRes * ASSEMBLE_ROWS) / ASSEMBLE_COLS);
     intermediateCanvas = scaleGrid(rawCanvas, baseRes, sRows);
-    
+
     if (dna.facing < 0) intermediateCanvas = flipGrid(intermediateCanvas);
 
     // ── 2. ESCALADO FINAL AL SLIDER ──
-    const finalRows = Math.round((sCols * intermediateCanvas.length) / intermediateCanvas[0].length);
+    const finalRows = Math.round(
+      (sCols * intermediateCanvas.length) / intermediateCanvas[0].length,
+    );
     grid = scaleGrid(intermediateCanvas, sCols, finalRows);
 
     // ── 3. POSICIONAMIENTO Y CELLSIZE ──
     const bounds = spriteBounds(grid);
-    
+
     const csW = (cW * targetFill) / bounds.w;
     const csH = (cH * targetFill) / bounds.h;
     const cellSize = Math.max(1, Math.min(csW, csH));
-    
+
     const contentW = bounds.w * cellSize;
     const contentH = bounds.h * cellSize;
 
@@ -2276,7 +2511,8 @@ function generateCreatures(count, keepSeed = false) {
       baseContentX = (cW - contentW) / 2;
       baseContentY = (cH - contentH) / 2;
     } else {
-      baseContentX = i === 0 ? cW * 0.25 - contentW / 2 : cW * 0.75 - contentW / 2;
+      baseContentX =
+        i === 0 ? cW * 0.25 - contentW / 2 : cW * 0.75 - contentW / 2;
       baseContentY = (cH - contentH) / 2;
     }
 
@@ -2295,8 +2531,10 @@ function generateCreatures(count, keepSeed = false) {
     });
   }
 
-  const label = state.creatures.length > 0 ? state.creatures[0].species : "creature";
-  document.getElementById("meta-dogs").textContent = `× ${count} ${label}${count > 1 ? "s" : ""}`;
+  const label =
+    state.creatures.length > 0 ? state.creatures[0].species : "creature";
+  document.getElementById("meta-dogs").textContent =
+    `× ${count} ${label}${count > 1 ? "s" : ""}`;
   state.needsRedraw = true;
 }
 
@@ -2388,6 +2626,14 @@ function wireUI(p) {
   // Slider de resolución (Píxeles)
   const slider = document.getElementById("slider-pixel");
   const metaPixel = document.getElementById("meta-pixel");
+
+  // Slider de Redondeo
+  const sliderRound = document.getElementById("slider-round");
+  sliderRound.addEventListener("input", () => {
+    state.effects.roundness = parseInt(sliderRound.value, 10);
+    state.needsRedraw = true;
+    p.loop();
+  });
 
   slider.addEventListener("input", () => {
     state.pixelCols = parseInt(slider.value, 10);
@@ -2489,6 +2735,7 @@ function wireUI(p) {
     });
     p.loop();
   });
+
   document.getElementById("bp-ancho").addEventListener("click", () => {
     mutatePart((dna, g) => {
       const f = Rp(0.5, 0.7, 0.9, 1.1, 1.4, 1.8, 2.3);
@@ -2508,6 +2755,14 @@ function wireUI(p) {
       creature.color = c;
     }
     state.needsRedraw = true;
+    p.loop();
+  });
+
+  document.getElementById("bp-reflejar").addEventListener("click", () => {
+    mutatePart((dna) => {
+      // Invertimos el valor de facing (si es 1 pasa a -1, y viceversa)
+      dna.facing *= -1;
+    });
     p.loop();
   });
 

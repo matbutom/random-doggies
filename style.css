@@ -284,43 +284,68 @@ input[type="range"]::-moz-range-thumb {
     flex-direction: column;
   }
 
-  /* 1. El lienzo se va arriba y ocupa el 45% de la pantalla */
   .canvas-area {
     width: 100vw;
-    height: 45vh;
-    order: 1; /* Forzamos que vaya arriba */
+    height: 60vh;
+    order: 1;
     flex: none;
   }
 
-  /* 2. El panel se va abajo, ocupa el 55% y permite scroll */
   .sidebar {
     width: 100vw;
     min-width: 100vw;
     height: 55vh;
-    order: 2; /* Forzamos que vaya abajo */
+    order: 2;
     border-right: none;
     border-top: 2px solid #D0CCC4;
-    padding: 20px;
+    padding: 20px 20px 0 20px; /* Reducimos el padding inferior para usar el de sidebar-bottom */
   }
 
-  /* 3. Acomodamos los botones del cuerpo en 2 columnas para ahorrar espacio */
-  #panel-generate .section:nth-of-type(3) {
+  /* 1. Agrupamos "Generar" y "Efectos" en 2 columnas */
+  #panel-generate {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 8px;
+    gap: 0 16px;
+  }
+
+  /* 2. "Cuerpo" ocupa todo el ancho, pero sus botones se dividen en 2 columnas */
+  #panel-generate .section:nth-of-type(3) {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 16px;
+    margin-top: 8px;
   }
   
   #panel-generate .section:nth-of-type(3) .section-label {
-    grid-column: span 2;
+    grid-column: 1 / -1;
     margin-bottom: 2px;
   }
 
-  /* El slider de píxeles también necesita un pequeño ajuste */
+  /* 3. "Píxeles" ocupa todo el ancho abajo */
   #panel-generate .section:nth-of-type(4) {
+    grid-column: 1 / -1;
     margin-top: 16px;
   }
-  
+
+  /* 4. Panel inferior (Formato y Exportar) en 2 columnas */
   .sidebar-bottom {
-    padding-bottom: 24px; /* Margen para el área segura de iPhone */
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 16px;
+    padding-bottom: 40px; /* Espacio extra para el área segura del iPhone (Home Indicator) */
+    align-items: center;
+  }
+
+  /* El selector de formato ocupa la fila completa arriba de los botones */
+  .sidebar-bottom .format-toggle {
+    grid-column: 1 / -1;
+    margin-bottom: 0;
+    justify-content: center; /* Centramos el texto de A4 | A3 */
+  }
+
+  /* Los botones de exportar se alinean lado a lado sin márgenes extra */
+  .sidebar-bottom .btn-export {
+    margin-top: 0; 
   }
 }
