@@ -31,7 +31,20 @@
               [ nuevo color ]
             </button>
             <button class="btn btn-effect" id="btn-dither">[ dithered ]</button>
-            
+
+            <div class="slider-row" style="margin-top: 16px">
+              <div class="section-label" style="margin-bottom: 0">
+                DESENFOQUE (0-10)
+              </div>
+              <input
+                type="range"
+                id="slider-blur"
+                min="0"
+                max="10"
+                step="1"
+                value="0"
+              />
+            </div>
 
             <div class="slider-row" style="margin-top: 16px">
               <div class="section-label" style="margin-bottom: 0">
@@ -53,8 +66,14 @@
             <button class="btn btn-part" id="bp-orejas">[ orejas ]</button>
             <button class="btn btn-part" id="bp-cola">[ cola ]</button>
             <button class="btn btn-part" id="bp-ojos">[ ojos ]</button>
+            <button class="btn btn-part" id="bp-reubicar-ojos">
+              [ reubicar ojos ]
+            </button>
             <button class="btn btn-part" id="bp-patas">[ patas ]</button>
             <button class="btn btn-part" id="bp-nariz">[ nariz ]</button>
+            <button class="btn btn-part" id="bp-accesorios">
+              [ accesorios ]
+            </button>
             <button class="btn btn-part" id="bp-cuerpo">[ cuerpo ]</button>
             <button class="btn btn-part" id="bp-voltear">[ voltear ]</button>
             <button class="btn btn-part" id="bp-largo">[ largo ]</button>
@@ -86,6 +105,7 @@
           </div>
           <button class="btn btn-export" id="btn-png">[ export PNG ]</button>
           <button class="btn btn-export" id="btn-pdf">[ export PDF ]</button>
+          <button class="btn btn-export" id="btn-svg">[ export SVG ]</button>
         </div>
       </aside>
 
@@ -97,14 +117,5 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="sketch.js"></script>
-
-    <svg style="visibility: hidden; position: absolute;" width="0" height="0" xmlns="http://www.w3.org/2000/svg" version="1.1">
-      <defs>
-        <filter id="goo">
-          <feGaussianBlur id="goo-blur" in="SourceGraphic" stdDeviation="4" result="blur" />
-          <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -10" result="goo" />
-        </filter>
-      </defs>
-    </svg>
   </body>
 </html>

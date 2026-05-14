@@ -568,7 +568,14 @@ const EAR_TEMPLATES = [
 ];
 
 const EYE_TEMPLATES = [
-  // 0 — Un solo puntito clásico (simple y adorable)
+  // 0 — single pixel dot
+  {
+    size: "small",
+    style: "dot",
+    grid: [[2]],
+  },
+
+  // 1 — two-by-two pixel dot
   {
     size: "small",
     style: "dot",
@@ -578,52 +585,36 @@ const EYE_TEMPLATES = [
     ],
   },
 
-  // 1 — Ojo redondo estándar (el más común en kawaii)
+  // 2 — compact pixel circle
   {
     size: "medium",
+    style: "round",
+    grid: [
+      [0, 2, 0],
+      [2, 2, 2],
+      [0, 2, 0],
+    ],
+  },
+
+  // 3 — tiny horizontal oval
+  {
+    size: "medium",
+    style: "oval",
+    grid: [
+      [2, 2, 2],
+      [2, 2, 2],
+    ],
+  },
+
+  // 4 — large but plain pixel circle
+  {
+    size: "large",
     style: "round",
     grid: [
       [0, 2, 2, 0],
       [2, 2, 2, 2],
       [2, 2, 2, 2],
       [0, 2, 2, 0],
-    ],
-  },
-
-  // 2 — Ojo ovalado "kawaii" con brillo (un píxel vacío en la esquina)
-  {
-    size: "large",
-    style: "cute",
-    grid: [
-      [0, 2, 2, 2, 0],
-      [2, 0, 0, 2, 2], // El '0' en [1,1] y [1,2] es el brillo
-      [2, 2, 2, 2, 2],
-      [0, 2, 2, 2, 0],
-    ],
-  },
-
-  // 3 — Ojo rasgado "sereno" (solo dos líneas oscuras)
-  {
-    size: "medium",
-    style: "focused",
-    grid: [
-      [0, 0, 0, 0, 0],
-      [2, 2, 2, 2, 0],
-      [2, 2, 2, 2, 0],
-      [0, 0, 0, 0, 0],
-    ],
-  },
-
-  // 4 — "Kawaii Sparkle" con brillo complejo (simulando una estrella)
-  {
-    size: "large",
-    style: "starshine",
-    grid: [
-      [0, 0, 2, 0, 0],
-      [0, 2, 0, 2, 0], // El '0' en [1,2] es el brillo central
-      [2, 0, 2, 0, 2],
-      [0, 2, 0, 2, 0],
-      [0, 0, 2, 0, 0],
     ],
   },
 ];
@@ -1084,7 +1075,7 @@ const ACCESSORY_TEMPLATES = [
   { slot: "neck", grid: [[4, 4, 4, 4]] },
   // 2 — tiny hat
   {
-    slot: "head",
+    slot: "hat",
     grid: [
       [0, 2, 2, 0],
       [2, 2, 2, 2],
@@ -1092,12 +1083,64 @@ const ACCESSORY_TEMPLATES = [
   },
   // 3 — Wizard Hat (High-Res)
   {
-    slot: "head",
+    slot: "hat",
     grid: [
       [0, 0, 4, 0, 0],
       [0, 4, 4, 0, 0],
       [0, 4, 4, 4, 0],
       [4, 4, 4, 4, 4],
+    ],
+  },
+  // 4 — rounded cap
+  {
+    slot: "hat",
+    grid: [
+      [0, 4, 4, 4, 0],
+      [4, 4, 4, 4, 4],
+      [2, 2, 2, 2, 2],
+    ],
+  },
+  // 5 — tall beanie
+  {
+    slot: "hat",
+    grid: [
+      [0, 0, 4, 0, 0],
+      [0, 4, 4, 4, 0],
+      [0, 4, 4, 4, 0],
+      [4, 4, 4, 4, 4],
+    ],
+  },
+  // 6 — tiny crown
+  {
+    slot: "hat",
+    grid: [
+      [4, 0, 4, 0, 4],
+      [4, 4, 4, 4, 4],
+      [0, 4, 4, 4, 0],
+    ],
+  },
+  // 7 — simple shoes
+  {
+    slot: "feet",
+    grid: [
+      [2, 2],
+      [2, 2, 2],
+    ],
+  },
+  // 8 — accent boots
+  {
+    slot: "feet",
+    grid: [
+      [4, 4],
+      [2, 2, 2],
+    ],
+  },
+  // 9 — chunky slippers
+  {
+    slot: "feet",
+    grid: [
+      [3, 3, 0],
+      [2, 2, 2],
     ],
   },
 ];
@@ -1174,7 +1217,7 @@ const SPECIES_REGISTRY = {
     headSizes: ["medium", "large"],
     bodySizes: ["medium", "compact"],
     legSizes: ["medium", "long"],
-    eyeStyles: ["star", "wide", "round"],
+    eyeStyles: ["dot", "round", "oval"],
   },
 };
 
@@ -1376,17 +1419,6 @@ function applyConstraints(dna) {
     );
     if (i >= 0) dna.headType = i;
   }
-  // Expressive eyes on medium/large heads
-  if (
-    finalHead.size !== "small" &&
-    EYE_TEMPLATES[dna.eyeType].size === "small"
-  ) {
-    const i = EYE_TEMPLATES.findIndex(
-      (e) => e.size === "medium" || e.size === "large",
-    );
-    if (i >= 0) dna.eyeType = i;
-  }
-
   return dna;
 }
 
@@ -1428,13 +1460,15 @@ function buildSkeleton(dna, tmpl, genes) {
   const headR = bodyR + body.neckAnchor[1] - head.neckAnchor[1];
 
   const activeLegs = genes?.legCount ?? 4;
+  const eyeOffsetC = genes?.eyeOffsetC || 0;
+  const eyeOffsetR = genes?.eyeOffsetR || 0;
   return {
     bodyC,
     bodyR,
     headC,
     headR,
-    eyeC: headC + head.eyePos[0],
-    eyeR: headR + head.eyePos[1],
+    eyeC: headC + head.eyePos[0] + eyeOffsetC,
+    eyeR: headR + head.eyePos[1] + eyeOffsetR,
     earC: headC + head.earAnchor[0] - ear.attach[0],
     earR: headR + head.earAnchor[1] - ear.attach[1],
     snoutC: headC + head.snoutAnchor[0] - snout.attach[0],
@@ -1497,15 +1531,12 @@ function assembleBodyParts(dna, skeleton, tmpl, genes) {
   for (const { c, r } of legPositions) stampPart(canvas, tmpl.leg.grid, c, r);
   stampPart(canvas, tmpl.eye.grid, eyeC, eyeR);
 
-  // Multiple eyes (LEGENDARY): mirror second eye + third eye centered above
+  // Multiple eyes stay as a horizontal pair: no third eye, no vertical stack.
   if (genes?.multipleEyes) {
     const headW = tmpl.head.grid[0].length;
     const eyeW = tmpl.eye.grid[0].length;
     const mirC = headC + (headW - (eyeC - headC) - eyeW);
-    stampPart(canvas, flipGrid(tmpl.eye.grid), mirC, eyeR);
-    const thirdC = headC + Math.floor(headW / 2) - Math.floor(eyeW / 2);
-    const thirdR = eyeR - tmpl.eye.grid.length - 1;
-    stampPart(canvas, tmpl.eye.grid, thirdC, thirdR);
+    if (mirC !== eyeC) stampPart(canvas, tmpl.eye.grid, mirC, eyeR);
   }
 
   if (dna.symmetric)
@@ -1514,8 +1545,16 @@ function assembleBodyParts(dna, skeleton, tmpl, genes) {
   if (dna.accessory >= 0) {
     const acc = ACCESSORY_TEMPLATES[dna.accessory];
     const head = tmpl.head;
+    const accW = Math.max(...acc.grid.map((row) => row.length));
     if (acc.slot === "head") {
       stampPart(canvas, acc.grid, headC + 1, headR - acc.grid.length);
+    } else if (acc.slot === "hat") {
+      stampPart(
+        canvas,
+        acc.grid,
+        headC + Math.floor(head.grid[0].length / 2) - Math.floor(accW / 2),
+        headR - acc.grid.length + 1,
+      );
     } else if (acc.slot === "neck") {
       stampPart(
         canvas,
@@ -1523,6 +1562,17 @@ function assembleBodyParts(dna, skeleton, tmpl, genes) {
         headC + head.neckAnchor[0] - 1,
         headR + head.neckAnchor[1],
       );
+    } else if (acc.slot === "feet") {
+      const legW = tmpl.leg.grid[0].length;
+      const legH = tmpl.leg.grid.length;
+      for (const { c, r } of legPositions) {
+        stampPart(
+          canvas,
+          acc.grid,
+          c + Math.floor(legW / 2) - Math.floor(accW / 2),
+          r + legH - 1,
+        );
+      }
     }
   }
 
@@ -1540,15 +1590,13 @@ function addSymmetricFeatures(canvas, dna, headC, headR, tmpl, genes) {
   const ear = tmpl.ear;
   const headW = head.grid[0].length;
 
-  // Mirror eye
-  // Mirror eye
-  const eyeRelC = head.eyePos[0];
+  // Mirror eye on the same row as the current eye position.
+  const eyeRelC = head.eyePos[0] + (genes?.eyeOffsetC || 0);
+  const eyeRelR = head.eyePos[1] + (genes?.eyeOffsetR || 0);
   const eyeW = eye.grid[0].length;
   const mirEyeRelC = headW - eyeRelC - eyeW;
   if (mirEyeRelC >= 0 && mirEyeRelC !== eyeRelC) {
-    // Si el ojo tiene brillo, no queremos que se invierta el brillo a la izquierda
-    // Lo ideal es estampar el ojo original, no el espejado.
-    stampPart(canvas, eye.grid, headC + mirEyeRelC, headR + head.eyePos[1]);
+    stampPart(canvas, eye.grid, headC + mirEyeRelC, headR + eyeRelR);
   }
 
   // Mirror ear — skip for asymmetric gene (singleEar / extremeAsymmetry)
@@ -1570,68 +1618,55 @@ function addSymmetricFeatures(canvas, dna, headC, headR, tmpl, genes) {
 
 // ── PIPELINE STAGE 4 — addDetails(canvas, dna, skeleton) ───────────────────
 // Paints fine details on top of the assembled flat silhouette:
-//   · eye catchlight  · body bottom shading  · paw ankle accent
-//   · cheek blush for symmetric (front-facing) dogs
+//   · body bottom shading  · paw ankle accent
+//   · cheek blush for symmetric (front-facing) creatures
 
 function addDetails(canvas, dna, skeleton, tmpl) {
-  const head = tmpl.head;
-  const body = tmpl.body;
-  const eye = tmpl.eye;
-  const leg = tmpl.leg;
-  const { eyeC, eyeR, bodyC, bodyR, headC, headR, legPositions } = skeleton;
-
-  // ── Eye catchlight ────────────────────────────────────────────────────────
-  // Clear the first solid eye pixel to create a white sparkle.
-  // Only applied when the eye occupies more than one pixel so it stays readable.
-  const eyeCells = [];
-  for (let r = 0; r < eye.grid.length; r++)
-    for (let c = 0; c < eye.grid[r].length; c++)
-      if (eye.grid[r][c]) eyeCells.push([eyeR + r, eyeC + c]);
-  if (eyeCells.length > 1) {
-    const [sr, sc] = eyeCells[0];
-    if (sr >= 0 && sr < canvas.length && sc >= 0 && sc < canvas[0].length)
-      canvas[sr][sc] = 0;
-  }
-
-  // ── Bottom-edge body shading ──────────────────────────────────────────────
-  // Darken the lowest body row (val 1 → 3) for a subtle ground-plane hint.
-  const bodyGrid = body.grid;
-  const bottomRow = bodyR + bodyGrid.length - 1;
-  if (bottomRow >= 0 && bottomRow < canvas.length) {
-    for (let c = bodyC; c < bodyC + bodyGrid[0].length; c++) {
-      if (c >= 0 && c < canvas[0].length && canvas[bottomRow][c] === 1)
-        canvas[bottomRow][c] = 3;
+  const { ear, leg, tail } = tmpl;
+  const { earC, earR, tailC, tailR, legPositions } = skeleton;
+  const shadeSpan = (row, startC, endC) => {
+    if (row < 0 || row >= canvas.length) return;
+    const minC = Math.max(0, startC);
+    const maxC = Math.min(canvas[0].length - 1, endC);
+    for (let c = minC; c <= maxC; c++) {
+      if (canvas[row][c] === 1) canvas[row][c] = 3;
     }
-  }
+  };
+  const shadePartSideEdges = (grid, originC, originR, rowStep) => {
+    for (let r = 0; r < grid.length; r++) {
+      if (r % rowStep !== 0) continue;
+      for (let c = 0; c < grid[r].length; c++) {
+        if (grid[r][c] !== 1) continue;
+        const leftEmpty = grid[r][c - 1] !== 1;
+        const rightEmpty = grid[r][c + 1] !== 1;
+        if (!leftEmpty && !rightEmpty) continue;
+
+        const rr = originR + r;
+        const cc = originC + c;
+        if (
+          rr >= 0 &&
+          rr < canvas.length &&
+          cc >= 0 &&
+          cc < canvas[0].length &&
+          canvas[rr][cc] === 1
+        ) {
+          canvas[rr][cc] = 3;
+        }
+      }
+    }
+  };
+
+  // ── Subtle part-edge shading ─────────────────────────────────────────────
+  // Only the tail and a light touch on the ear get side-shadow source pixels.
+  shadePartSideEdges(tail.grid, tailC, tailR, 2);
+  shadePartSideEdges(ear.grid, earC, earR, 3);
 
   // ── Paw ankle accent ──────────────────────────────────────────────────────
   // Darken the row immediately above each black paw strip.
   const legGrid = leg.grid;
   for (const { c: lc, r: lr } of legPositions) {
     const ankleRow = lr + legGrid.length - 2;
-    if (ankleRow < 0 || ankleRow >= canvas.length) continue;
-    for (let dc = 0; dc < legGrid[0].length; dc++) {
-      const cc = lc + dc;
-      if (cc >= 0 && cc < canvas[0].length && canvas[ankleRow][cc] === 1)
-        canvas[ankleRow][cc] = 3;
-    }
-  }
-
-  // ── Cheek blush (symmetric / front-facing dogs only) ──────────────────────
-  if (dna.symmetric && head.size !== "small") {
-    const headW = head.grid[0].length;
-    const cx = headC + Math.floor(headW / 2);
-    const blushR = headR + Math.floor(head.grid.length * 0.6);
-    for (const bc of [cx - 2, cx + 1]) {
-      if (
-        bc >= 0 &&
-        bc < canvas[0].length &&
-        blushR >= 0 &&
-        blushR < canvas.length &&
-        canvas[blushR][bc] === 1
-      )
-        canvas[blushR][bc] = 3;
-    }
+    shadeSpan(ankleRow, lc, lc + legGrid[0].length - 1);
   }
 }
 
@@ -1733,6 +1768,8 @@ function generateMorphologyGenes(rng) {
     earSize: 1,
     noseSize: 1,
     eyeSpacing: 1,
+    eyeOffsetC: 0,
+    eyeOffsetR: 0,
     bodyOffsetX: 0,
     bodyOffsetY: 0,
     asymmetryChance: 0,
@@ -1957,6 +1994,7 @@ const state = {
   needsRedraw: true,
   effects: {
     dither: false,
+    blur: 0,
     roundness: 0,
     texture: false,
   },
@@ -1973,7 +2011,7 @@ function mulberry32(seed) {
   };
 }
 
-let pg, rng, blobCanvas, finalBlobCanvas, sketchP;
+let pg, rng, sketchP;
 
 // ── HISTORY / UNDO ──────────────────────────────────────────────────────────
 const HISTORY_LIMIT = 30;
@@ -2026,6 +2064,7 @@ function syncUI() {
   const slider = document.getElementById("slider-pixel");
   const metaPixel = document.getElementById("meta-pixel");
   const sliderRound = document.getElementById("slider-round");
+  const sliderBlur = document.getElementById("slider-blur");
   const ditherBtn = document.getElementById("btn-dither");
   const metaDogs = document.getElementById("meta-dogs");
   const btnA4 = document.getElementById("btn-a4");
@@ -2034,6 +2073,7 @@ function syncUI() {
   if (slider) slider.value = state.pixelCols;
   if (metaPixel) metaPixel.textContent = `${state.pixelCols} columnas`;
   if (sliderRound) sliderRound.value = state.effects.roundness;
+  if (sliderBlur) sliderBlur.value = state.effects.blur;
   if (ditherBtn) {
     ditherBtn.classList.toggle("on", state.effects.dither);
     ditherBtn.textContent = state.effects.dither
@@ -2068,11 +2108,6 @@ new p5(function (p) {
     const fmt = getFormat();
     pg = p.createGraphics(fmt.w, fmt.h);
 
-    // Lienzo para dibujar los círculos borrosos
-    blobCanvas = p.createGraphics(fmt.w, fmt.h);
-    // Lienzo final donde aplicamos el contraste (threshold)
-    finalBlobCanvas = p.createGraphics(fmt.w, fmt.h);
-
     wireUI(p);
     generateCreatures(1);
     syncUI();
@@ -2106,36 +2141,20 @@ function scaledDims() {
   return { w: Math.floor(fmt.w * scale), h: Math.floor(fmt.h * scale) };
 }
 
-let creatureLayer;
-
 function renderFrame(p) {
   const fmt = getFormat();
 
-  if (!pg || !creatureLayer || pg.width !== fmt.w || pg.height !== fmt.h) {
+  if (!pg || pg.width !== fmt.w || pg.height !== fmt.h) {
     if (pg) pg.remove();
-    if (creatureLayer) creatureLayer.remove();
     pg = p.createGraphics(fmt.w, fmt.h);
-    creatureLayer = p.createGraphics(fmt.w, fmt.h); // Capa invisible
   }
 
   pg.background(CANVAS_BG);
 
   for (const dog of state.creatures) {
-    if (state.effects.roundness > 0) {
-      creatureLayer.clear();
-      // Dibujamos los bloques cuadrados en la capa transparente
-      drawPixelCreature(creatureLayer, dog);
-
-      // Ajustamos la fuerza del filtro según el slider y el tamaño del píxel
-      const blurVal = dog.cellSize * 0.4 * (state.effects.roundness / 10);
-      document.getElementById("goo-blur").setAttribute("stdDeviation", blurVal);
-
-      // Pegamos la capa aplicando el Filtro "Gooey" (GPU Acelerado)
-      pg.drawingContext.filter = "url(#goo)";
-      pg.image(creatureLayer, 0, 0);
-      pg.drawingContext.filter = "none"; // Reseteamos el filtro
+    if (state.effects.roundness > 0 || state.effects.blur > 0) {
+      drawRoundedPixelCreature(pg, dog);
     } else {
-      // Si el slider es 0, dibujamos normal
       drawPixelCreature(pg, dog);
     }
   }
@@ -2144,140 +2163,6 @@ function renderFrame(p) {
   p.resizeCanvas(dims.w, dims.h);
   p.smooth();
   p.image(pg, 0, 0, dims.w, dims.h);
-}
-
-// ── NUEVO MOTOR LÍQUIDO (METABALLS) ──
-
-function drawBlobCreature(targetG, dog) {
-  const { grid, cellSize, startX, startY, color } = dog;
-
-  // 1. Limpiamos los lienzos temporales
-  blobCanvas.clear();
-  finalBlobCanvas.clear();
-
-  // 2. Dibujamos la criatura como círculos borrosos (blobs)
-  for (let r = 0; r < grid.length; r++) {
-    for (let c = 0; c < grid[r].length; c++) {
-      const val = grid[r][c];
-      if (val) {
-        drawCellBlob(
-          blobCanvas,
-          startX + c * cellSize,
-          startY + r * cellSize,
-          cellSize,
-          val,
-          color,
-        );
-      }
-    }
-  }
-
-  // 3. Aplicamos el contraste extremo (Threshold) para redondear uniones
-  finalBlobCanvas.image(blobCanvas, 0, 0);
-  finalBlobCanvas.loadPixels();
-
-  // Umbral de dureza del borde (160 es ideal para formas orgánicas)
-  const threshold = 160;
-
-  for (let i = 0; i < finalBlobCanvas.pixels.length; i += 4) {
-    // Si la opacidad del píxel supera el umbral, lo hacemos sólido
-    if (finalBlobCanvas.pixels[i + 3] > threshold) {
-      finalBlobCanvas.pixels[i + 3] = 255;
-    } else {
-      // Si no, lo hacemos 100% transparente
-      finalBlobCanvas.pixels[i + 3] = 0;
-    }
-  }
-  finalBlobCanvas.updatePixels();
-
-  // 4. Pegamos la criatura resultante en el lienzo principal
-  targetG.image(finalBlobCanvas, 0, 0);
-}
-
-function drawCellBlob(g, px, py, cs, val, color) {
-  g.noStroke();
-
-  if (val === 1) g.fill(color);
-  else if (val === 3) g.fill(darkenHex(color, 0.55));
-  else if (val === 4) g.fill(RED_ACCENT);
-  else g.fill(BLACK);
-
-  // Cuanto más alto el slider, más grande es el círculo
-  const expandFactor = 1 + state.effects.roundness / 10;
-  const blobSize = cs * expandFactor;
-
-  const centerX = px + cs / 2;
-  const centerY = py + cs / 2;
-
-  // Dibujamos círculos en lugar de cuadrados
-  g.ellipse(centerX, centerY, blobSize, blobSize);
-}
-
-// ── NUEVO MOTOR LÍQUIDO (METABALLS) ──
-
-function drawBlobCreature(targetG, dog) {
-  const { grid, cellSize, startX, startY, color } = dog;
-
-  // 1. Limpiamos los lienzos temporales
-  blobCanvas.clear();
-  finalBlobCanvas.clear();
-
-  // 2. Dibujamos la criatura como círculos borrosos (blobs)
-  for (let r = 0; r < grid.length; r++) {
-    for (let c = 0; c < grid[r].length; c++) {
-      const val = grid[r][c];
-      if (val) {
-        drawCellBlob(
-          blobCanvas,
-          startX + c * cellSize,
-          startY + r * cellSize,
-          cellSize,
-          val,
-          color,
-        );
-      }
-    }
-  }
-
-  // 3. Aplicamos el contraste extremo (Threshold) para redondear uniones
-  finalBlobCanvas.image(blobCanvas, 0, 0);
-  finalBlobCanvas.loadPixels();
-
-  // Umbral de dureza del borde (160 es ideal para formas orgánicas)
-  const threshold = 160;
-
-  for (let i = 0; i < finalBlobCanvas.pixels.length; i += 4) {
-    // Si la opacidad del píxel supera el umbral, lo hacemos sólido
-    if (finalBlobCanvas.pixels[i + 3] > threshold) {
-      finalBlobCanvas.pixels[i + 3] = 255;
-    } else {
-      // Si no, lo hacemos 100% transparente
-      finalBlobCanvas.pixels[i + 3] = 0;
-    }
-  }
-  finalBlobCanvas.updatePixels();
-
-  // 4. Pegamos la criatura resultante en el lienzo principal
-  targetG.image(finalBlobCanvas, 0, 0);
-}
-
-function drawCellBlob(g, px, py, cs, val, color) {
-  g.noStroke();
-
-  if (val === 1) g.fill(color);
-  else if (val === 3) g.fill(darkenHex(color, 0.55));
-  else if (val === 4) g.fill(RED_ACCENT);
-  else g.fill(BLACK);
-
-  // Cuanto más alto el slider, más grande es el círculo
-  const expandFactor = 1 + state.effects.roundness / 10;
-  const blobSize = cs * expandFactor;
-
-  const centerX = px + cs / 2;
-  const centerY = py + cs / 2;
-
-  // Dibujamos círculos en lugar de cuadrados
-  g.ellipse(centerX, centerY, blobSize, blobSize);
 }
 
 // ── COLOR HELPERS ──────────────────────────────────────────────────────────
@@ -2293,42 +2178,272 @@ function darkenHex(hex, f) {
 // val 1 = body color · val 2 = black · val 3 = dark body (~55%) · val 4 = red accent
 
 const RED_ACCENT = "#CC2020";
+const EXPORT_BASENAME = "randomanimalsoftheworld";
+
+function exportName(ext) {
+  const suffix = state.format.toLowerCase() + (state.landscape ? "-h" : "");
+  return `${EXPORT_BASENAME}-${suffix}.${ext}`;
+}
+
+function shouldDitherCell(dog, px, py, cs) {
+  const gridX = Math.floor(px / cs);
+  const gridY = Math.floor(py / cs);
+  const mod4 = (n) => ((n % 4) + 4) % 4;
+  const bayer = [
+    [0, 8, 2, 10],
+    [12, 4, 14, 6],
+    [3, 11, 1, 9],
+    [15, 7, 13, 5],
+  ];
+  const creature = dog || state.creatures[0];
+  const relativeY = (py - creature.startY) / (creature.grid.length * cs);
+  const threshold = relativeY * 18;
+  return bayer[mod4(gridY)][mod4(gridX)] < threshold;
+}
+
+function ditherCellSize(dog) {
+  const fmt = getFormat();
+  const detail = Math.max(2, state.pixelCols / 50);
+  return Math.max(4, Math.min(dog.cellSize * 0.45, fmt.w / (120 * detail)));
+}
+
+function blurPixels(dog) {
+  if (!dog) return Math.max(0, state.effects.blur) * 2.2;
+  const t = Math.max(0, state.effects.blur) / 10;
+  return dog.cellSize * (0.35 + t * 1.35) * t;
+}
+
+function shadowAlpha() {
+  const t = Math.max(0, state.effects.blur) / 10;
+  return 0.82 - t * 0.42;
+}
+
+function cellColor(val, color, dog, px, py, cs) {
+  if (val === 1) {
+    // ¡Restricción eliminada! Ahora el dither funciona siempre que el botón esté activo.
+    if (state.effects.dither && shouldDitherCell(dog, px, py, cs)) {
+      return darkenHex(color, 0.85);
+    }
+    return color;
+  }
+  if (val === 3) return darkenHex(color, 0.55);
+  if (val === 4) return RED_ACCENT;
+  return BLACK;
+}
+
+function cellFill(g, px, py, cs, val, color, dog = null) {
+  g.fill(cellColor(val, color, dog, px, py, cs));
+}
 
 function drawCell(g, px, py, cs, val, color) {
   g.noStroke();
-
-  if (val === 1) {
-    // ¡Restricción eliminada! Ahora el dither funciona siempre que el botón esté activo.
-    if (state.effects.dither) {
-      let gridX = Math.floor(px / cs);
-      let gridY = Math.floor(py / cs);
-      const bayer = [
-        [0, 8, 2, 10],
-        [12, 4, 14, 6],
-        [3, 11, 1, 9],
-        [15, 7, 13, 5],
-      ];
-
-      // Aseguramos que tome la primera criatura como referencia de altura
-      let creature = state.creatures[0];
-      let relativeY = (py - creature.startY) / (creature.grid.length * cs);
-      let threshold = relativeY * 18;
-
-      if (bayer[gridY % 4][gridX % 4] < threshold) {
-        g.fill(darkenHex(color, 0.85));
-      } else {
-        g.fill(color);
-      }
-    } else {
-      g.fill(color);
-    }
-  } else if (val === 3) g.fill(darkenHex(color, 0.55));
-  else if (val === 4) g.fill(RED_ACCENT);
-  else g.fill(BLACK);
+  cellFill(g, px, py, cs, val, color);
 
   // Dibujamos el bloque.
-  // cs + 1 previene líneas blancas entre píxeles antes de aplicar el filtro.
+  // cs + 1 previene líneas blancas entre píxeles al exportar.
   g.rect(px, py, cs + 1, cs + 1);
+}
+
+function isSolidAt(grid, r, c) {
+  return r >= 0 && r < grid.length && c >= 0 && c < grid[0].length
+    ? grid[r][c] !== 0
+    : false;
+}
+
+function touchesEmpty(grid, r, c) {
+  for (let dr = -1; dr <= 1; dr++) {
+    for (let dc = -1; dc <= 1; dc++) {
+      if (dr === 0 && dc === 0) continue;
+      if (!isSolidAt(grid, r + dr, c + dc)) return true;
+    }
+  }
+  return false;
+}
+
+function roundStrokeWidth(cellSize) {
+  const t = state.effects.roundness / 10;
+  return cellSize * 0.46 * t;
+}
+
+function pointKey(x, y) {
+  return `${x},${y}`;
+}
+
+function addBoundaryEdge(edgesByStart, x1, y1, x2, y2) {
+  const key = pointKey(x1, y1);
+  if (!edgesByStart.has(key)) edgesByStart.set(key, []);
+  edgesByStart.get(key).push({ x1, y1, x2, y2 });
+}
+
+function boundaryLoopsForMatch(grid, matches) {
+  const edgesByStart = new Map();
+
+  for (let r = 0; r < grid.length; r++) {
+    for (let c = 0; c < grid[r].length; c++) {
+      if (!matches(grid[r][c])) continue;
+      if (!matches(grid[r - 1]?.[c])) addBoundaryEdge(edgesByStart, c, r, c + 1, r);
+      if (!matches(grid[r][c + 1])) addBoundaryEdge(edgesByStart, c + 1, r, c + 1, r + 1);
+      if (!matches(grid[r + 1]?.[c])) addBoundaryEdge(edgesByStart, c + 1, r + 1, c, r + 1);
+      if (!matches(grid[r][c - 1])) addBoundaryEdge(edgesByStart, c, r + 1, c, r);
+    }
+  }
+
+  const loops = [];
+  const nextEdge = (x, y) => {
+    const key = pointKey(x, y);
+    const bucket = edgesByStart.get(key);
+    if (!bucket || !bucket.length) return null;
+    const edge = bucket.pop();
+    if (!bucket.length) edgesByStart.delete(key);
+    return edge;
+  };
+
+  while (edgesByStart.size) {
+    const firstKey = edgesByStart.keys().next().value;
+    const bucket = edgesByStart.get(firstKey);
+    const first = bucket.pop();
+    if (!bucket.length) edgesByStart.delete(firstKey);
+
+    const loop = [{ x: first.x1, y: first.y1 }];
+    let edge = first;
+    let guard = 0;
+
+    while (edge && guard < 10000) {
+      loop.push({ x: edge.x2, y: edge.y2 });
+      if (edge.x2 === first.x1 && edge.y2 === first.y1) break;
+      edge = nextEdge(edge.x2, edge.y2);
+      guard++;
+    }
+
+    if (loop.length > 3) {
+      loop.pop();
+      loops.push(simplifyLoop(loop));
+    }
+  }
+
+  return loops;
+}
+
+function boundaryLoopsForValue(grid, val) {
+  return boundaryLoopsForMatch(grid, (v) => v === val);
+}
+
+function boundaryLoopsForBody(grid) {
+  return boundaryLoopsForMatch(grid, (v) => v === 1 || v === 3);
+}
+
+function simplifyLoop(points) {
+  return points.filter((p, i) => {
+    const prev = points[(i - 1 + points.length) % points.length];
+    const next = points[(i + 1) % points.length];
+    const dx1 = p.x - prev.x;
+    const dy1 = p.y - prev.y;
+    const dx2 = next.x - p.x;
+    const dy2 = next.y - p.y;
+    return dx1 * dy2 - dy1 * dx2 !== 0;
+  });
+}
+
+function roundedLoopPathD(points, radius, scale, offsetX, offsetY) {
+  if (points.length < 3) return "";
+
+  const pts = points.map((p) => ({
+    x: offsetX + p.x * scale,
+    y: offsetY + p.y * scale,
+  }));
+
+  const corners = pts.map((p, i) => {
+    const prev = pts[(i - 1 + pts.length) % pts.length];
+    const next = pts[(i + 1) % pts.length];
+    const inLen = Math.hypot(p.x - prev.x, p.y - prev.y);
+    const outLen = Math.hypot(next.x - p.x, next.y - p.y);
+    const inDir = { x: (p.x - prev.x) / inLen, y: (p.y - prev.y) / inLen };
+    const outDir = { x: (next.x - p.x) / outLen, y: (next.y - p.y) / outLen };
+    const isStraight = inDir.x === outDir.x && inDir.y === outDir.y;
+    const r = isStraight ? 0 : Math.min(radius, inLen / 2, outLen / 2);
+    return {
+      p,
+      entry: { x: p.x - inDir.x * r, y: p.y - inDir.y * r },
+      exit: { x: p.x + outDir.x * r, y: p.y + outDir.y * r },
+      r,
+    };
+  });
+
+  const commands = [`M ${corners[0].exit.x} ${corners[0].exit.y}`];
+  for (let i = 1; i < corners.length; i++) {
+    const c = corners[i];
+    commands.push(`L ${c.entry.x} ${c.entry.y}`);
+    commands.push(
+      c.r
+        ? `Q ${c.p.x} ${c.p.y} ${c.exit.x} ${c.exit.y}`
+        : `L ${c.exit.x} ${c.exit.y}`,
+    );
+  }
+  const first = corners[0];
+  commands.push(`L ${first.entry.x} ${first.entry.y}`);
+  commands.push(
+    first.r
+      ? `Q ${first.p.x} ${first.p.y} ${first.exit.x} ${first.exit.y}`
+      : `L ${first.exit.x} ${first.exit.y}`,
+  );
+  commands.push("Z");
+  return commands.join(" ");
+}
+
+function drawRoundedValue(g, dog, val, radius) {
+  const { grid, cellSize, startX, startY, color } = dog;
+  const loops = val === 1 ? boundaryLoopsForBody(grid) : boundaryLoopsForValue(grid, val);
+  if (!loops.length) return;
+
+  const path = new Path2D(
+    loops.map((loop) => roundedLoopPathD(loop, radius, cellSize, startX, startY)).join(" "),
+  );
+
+  if (val === 1 && state.effects.dither) {
+    const ctx = g.drawingContext;
+    const ditherSize = ditherCellSize(dog);
+    const bounds = spriteBounds(grid);
+    const x0 = startX + bounds.minC * cellSize;
+    const y0 = startY + bounds.minR * cellSize;
+    const x1 = startX + (bounds.maxC + 1) * cellSize;
+    const y1 = startY + (bounds.maxR + 1) * cellSize;
+
+    g.noStroke();
+    g.fill(color);
+    ctx.fill(path, "evenodd");
+
+    ctx.save();
+    ctx.clip(path, "evenodd");
+    g.fill(darkenHex(color, 0.85));
+    for (let y = y0; y < y1; y += ditherSize) {
+      for (let x = x0; x < x1; x += ditherSize) {
+        if (shouldDitherCell(dog, x, y, ditherSize)) {
+          g.rect(x, y, ditherSize + 0.75, ditherSize + 0.75);
+        }
+      }
+    }
+    ctx.restore();
+    return;
+  }
+
+  g.noStroke();
+  g.fill(cellColor(val, color, dog, startX, startY, cellSize));
+  const ctx = g.drawingContext;
+  if (state.effects.blur > 0 && val === 3) {
+    const bodyPath = new Path2D(
+      boundaryLoopsForBody(grid)
+        .map((loop) => roundedLoopPathD(loop, radius, cellSize, startX, startY))
+        .join(" "),
+    );
+    ctx.save();
+    ctx.clip(bodyPath, "evenodd");
+    ctx.filter = `blur(${blurPixels(dog)}px)`;
+    ctx.globalAlpha = shadowAlpha();
+    ctx.fill(path, "evenodd");
+    ctx.restore();
+  } else {
+    ctx.fill(path, "evenodd");
+  }
 }
 
 // ── PIPELINE STAGE 5 — render(g, dog) ──────────────────────────────────────
@@ -2355,6 +2470,31 @@ function drawPixelCreature(g, dog) {
         );
       }
     }
+  }
+}
+
+function drawRoundedPixelCreature(g, dog) {
+  const radius = roundStrokeWidth(dog.cellSize);
+  const { grid, cellSize, startX, startY, color } = dog;
+
+  g.noStroke();
+  g.fill(color);
+  for (let r = 0; r < grid.length; r++) {
+    for (let c = 0; c < grid[r].length; c++) {
+      const val = grid[r][c];
+      if (val && val !== 1 && !touchesEmpty(grid, r, c)) {
+        g.rect(
+          startX + c * cellSize,
+          startY + r * cellSize,
+          cellSize + 1,
+          cellSize + 1,
+        );
+      }
+    }
+  }
+
+  for (const val of [1, 3, 4, 2]) {
+    drawRoundedValue(g, dog, val, radius);
   }
 }
 
@@ -2806,6 +2946,61 @@ function mutatePart(fn) {
   state.needsRedraw = true;
 }
 
+function solidCells(grid) {
+  const cells = [];
+  for (let r = 0; r < grid.length; r++) {
+    for (let c = 0; c < grid[r].length; c++) {
+      if (grid[r][c]) cells.push([c, r]);
+    }
+  }
+  return cells;
+}
+
+function findReadableEyeOffset(dna, genes) {
+  const tmpl = buildMorphedTemplates(dna, genes);
+  const head = tmpl.head;
+  const eye = tmpl.eye;
+  const baseC = head.eyePos[0];
+  const baseR = head.eyePos[1];
+  const eyeCells = solidCells(eye.grid);
+  const candidates = [];
+
+  for (let r = 0; r <= head.grid.length - eye.grid.length; r++) {
+    for (let c = 0; c <= head.grid[0].length - eye.grid[0].length; c++) {
+      const fitsHead = eyeCells.every(([ec, er]) => head.grid[r + er][c + ec]);
+      if (!fitsHead) continue;
+
+      const centerC = c + eye.grid[0].length / 2;
+      const centerR = r + eye.grid.length / 2;
+      const idealC = head.grid[0].length * 0.38;
+      const idealR = head.grid.length * 0.42;
+      const score =
+        Math.abs(centerC - idealC) +
+        Math.abs(centerR - idealR) +
+        Math.random() * 0.75;
+
+      candidates.push({ c, r, score });
+    }
+  }
+
+  if (!candidates.length) return { c: 0, r: 0 };
+
+  const currentC = genes?.eyeOffsetC || 0;
+  const currentR = genes?.eyeOffsetR || 0;
+  const moveCandidates = candidates.filter(
+    ({ c, r }) => c - baseC !== currentC || r - baseR !== currentR,
+  );
+  const rankedCandidates = moveCandidates.length ? moveCandidates : candidates;
+
+  rankedCandidates.sort((a, b) => a.score - b.score);
+  const pool = rankedCandidates.slice(0, Math.min(6, rankedCandidates.length));
+  const pick = pool[Math.floor(Math.random() * pool.length)];
+  return {
+    c: pick.c - baseC,
+    r: pick.r - baseR,
+  };
+}
+
 // ── WIRE UI ────────────────────────────────────────────────────────────────
 
 function wireUI(p) {
@@ -2838,6 +3033,15 @@ function wireUI(p) {
   // Slider de resolución (Píxeles)
   const slider = document.getElementById("slider-pixel");
   const metaPixel = document.getElementById("meta-pixel");
+
+  // Slider de Desenfoque
+  const sliderBlur = document.getElementById("slider-blur");
+  sliderBlur.addEventListener("pointerdown", pushHistory);
+  sliderBlur.addEventListener("input", () => {
+    state.effects.blur = parseInt(sliderBlur.value, 10);
+    state.needsRedraw = true;
+    p.loop();
+  });
 
   // Slider de Redondeo
   const sliderRound = document.getElementById("slider-round");
@@ -2878,6 +3082,7 @@ function wireUI(p) {
     e.target.textContent = state.effects.dither
       ? "[ dithered: on ]"
       : "[ dithered: off ]";
+    syncUI();
 
     state.needsRedraw = true;
     p.loop();
@@ -2906,6 +3111,16 @@ function wireUI(p) {
       dna.eyeType = Ri(EYE_TEMPLATES.length);
       g.multipleEyes = R() < 0.15;
       g.eyeSpacing = Rp(0.8, 1.0, 1.2, 1.5);
+      g.eyeOffsetC = 0;
+      g.eyeOffsetR = 0;
+    });
+    p.loop();
+  });
+  document.getElementById("bp-reubicar-ojos").addEventListener("click", () => {
+    mutatePart((dna, g) => {
+      const offset = findReadableEyeOffset(dna, g);
+      g.eyeOffsetC = offset.c;
+      g.eyeOffsetR = offset.r;
     });
     p.loop();
   });
@@ -2925,6 +3140,12 @@ function wireUI(p) {
     mutatePart((dna, g) => {
       dna.snoutType = Ri(SNOUT_TEMPLATES.length);
       g.noseSize = Rp(0.6, 0.8, 1.0, 1.4, 1.8);
+    });
+    p.loop();
+  });
+  document.getElementById("bp-accesorios").addEventListener("click", () => {
+    mutatePart((dna) => {
+      dna.accessory = Ri(ACCESSORY_TEMPLATES.length);
     });
     p.loop();
   });
@@ -2996,6 +3217,7 @@ function wireUI(p) {
     });
   document.getElementById("btn-png").addEventListener("click", exportPNG);
   document.getElementById("btn-pdf").addEventListener("click", exportPDF);
+  document.getElementById("btn-svg").addEventListener("click", exportSVG);
 
   // Undo shortcut
   document.addEventListener("keydown", handleUndoShortcut);
@@ -3031,9 +3253,8 @@ function applyLandscape(p) {
 
 function exportPNG() {
   if (!pg) return;
-  const suffix = state.format.toLowerCase() + (state.landscape ? "-h" : "");
   const link = document.createElement("a");
-  link.download = `doggo-prints-${suffix}.png`;
+  link.download = exportName("png");
   link.href = pg.elt.toDataURL("image/png");
   link.click();
 }
@@ -3060,5 +3281,104 @@ function exportPDF() {
       ? 297
       : 420;
   doc.addImage(pg.elt.toDataURL("image/jpeg", 0.92), "JPEG", 0, 0, mmW, mmH);
-  doc.save(`doggo-prints-${paper}${state.landscape ? "-h" : ""}.pdf`);
+  doc.save(exportName("pdf"));
+}
+
+function svgCellColor(val, color, dog, px, py) {
+  if (val === 1) {
+    if (state.effects.dither && shouldDitherCell(dog, px, py, dog.cellSize))
+      return darkenHex(color, 0.85);
+    return color;
+  }
+  if (val === 3) return darkenHex(color, 0.55);
+  if (val === 4) return RED_ACCENT;
+  return BLACK;
+}
+
+function svgCreatureParts(dog, creatureIndex) {
+  const { grid, cellSize, startX, startY, color } = dog;
+  const roundness = state.effects.roundness;
+  const radius = roundStrokeWidth(cellSize);
+  const size = cellSize + 1;
+  const parts = [];
+
+  if (roundness <= 0) {
+    for (let r = 0; r < grid.length; r++) {
+      for (let c = 0; c < grid[r].length; c++) {
+        const val = grid[r][c];
+        if (!val) continue;
+        const x = startX + c * cellSize;
+        const y = startY + r * cellSize;
+        const fill = svgCellColor(val, color, dog, x, y);
+        parts.push(
+          `<rect x="${x}" y="${y}" width="${size}" height="${size}" fill="${fill}" />`,
+        );
+      }
+    }
+    return parts.join("\n");
+  }
+
+  for (const val of [1, 3, 4, 2]) {
+    const loops = val === 1 ? boundaryLoopsForBody(grid) : boundaryLoopsForValue(grid, val);
+    if (loops.length) {
+      const d = loops
+        .map((loop) => roundedLoopPathD(loop, radius, cellSize, startX, startY))
+        .join(" ");
+
+      if (val === 1 && state.effects.dither) {
+        const clipId = `creature-${creatureIndex}-body-clip`;
+        const ditherSize = ditherCellSize(dog);
+        const bounds = spriteBounds(grid);
+        const x0 = startX + bounds.minC * cellSize;
+        const y0 = startY + bounds.minR * cellSize;
+        const x1 = startX + (bounds.maxC + 1) * cellSize;
+        const y1 = startY + (bounds.maxR + 1) * cellSize;
+
+        parts.push(`<path d="${d}" fill="${color}" fill-rule="evenodd" />`);
+        parts.push(
+          `<clipPath id="${clipId}" clipPathUnits="userSpaceOnUse"><path d="${d}" clip-rule="evenodd" /></clipPath>`,
+        );
+        parts.push(`<g clip-path="url(#${clipId})">`);
+        for (let y = y0; y < y1; y += ditherSize) {
+          for (let x = x0; x < x1; x += ditherSize) {
+            if (shouldDitherCell(dog, x, y, ditherSize)) {
+              parts.push(
+                `<rect x="${x}" y="${y}" width="${ditherSize + 0.75}" height="${ditherSize + 0.75}" fill="${darkenHex(color, 0.85)}" />`,
+              );
+            }
+          }
+        }
+        parts.push(`</g>`);
+        continue;
+      }
+
+      const sampleFill = svgCellColor(val, color, dog, startX, startY);
+      parts.push(
+        `<path d="${d}" fill="${sampleFill}" fill-rule="evenodd" />`,
+      );
+    }
+  }
+
+  return parts.join("\n");
+}
+
+function exportSVG() {
+  const fmt = getFormat();
+  const content = state.creatures.map(svgCreatureParts).join("\n");
+  const svg = [
+    `<?xml version="1.0" encoding="UTF-8"?>`,
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${fmt.w}" height="${fmt.h}" viewBox="0 0 ${fmt.w} ${fmt.h}">`,
+    `<rect width="100%" height="100%" fill="${CANVAS_BG}" />`,
+    `<g id="creatures">`,
+    content,
+    `</g>`,
+    `</svg>`,
+  ].join("\n");
+  const blob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.download = exportName("svg");
+  link.href = url;
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 0);
 }
