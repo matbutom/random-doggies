@@ -1996,6 +1996,8 @@ const state = {
     dither: false,
     blur: 0,
     roundness: 0,
+    pixelShape: "square",
+    asciiChars: ["A", "M", "O", "V", "X"],
     texture: false,
   },
   history: [],
@@ -2066,6 +2068,12 @@ function syncUI() {
   const sliderRound = document.getElementById("slider-round");
   const sliderBlur = document.getElementById("slider-blur");
   const ditherBtn = document.getElementById("btn-dither");
+  const asciiRandomBtn = document.getElementById("btn-ascii-random");
+  const shapeButtons = {
+    circle: document.getElementById("btn-shape-circle"),
+    x: document.getElementById("btn-shape-x"),
+    ascii: document.getElementById("btn-shape-ascii"),
+  };
   const metaDogs = document.getElementById("meta-dogs");
   const btnA4 = document.getElementById("btn-a4");
   const btnA3 = document.getElementById("btn-a3");
@@ -2079,6 +2087,27 @@ function syncUI() {
     ditherBtn.textContent = state.effects.dither
       ? "[ dithered: on ]"
       : "[ dithered: off ]";
+  }
+  if (asciiRandomBtn) {
+    const chars = state.effects.asciiChars || [];
+    asciiRandomBtn.textContent = `[ random ascii: ${chars.join("")} ]`;
+  }
+  for (const [shape, btn] of Object.entries(shapeButtons)) {
+    if (!btn) continue;
+    const isActive = state.effects.pixelShape === shape;
+    btn.classList.toggle("on", isActive);
+    btn.textContent =
+      shape === "circle"
+        ? isActive
+          ? "[ pixels redondos: on ]"
+          : "[ pixels redondos ]"
+        : shape === "x"
+          ? isActive
+            ? "[ pixels X: on ]"
+            : "[ pixels X ]"
+          : isActive
+            ? "[ ascii: on ]"
+            : "[ ascii ]";
   }
   if (btnA4) btnA4.classList.toggle("active", state.format === "A4");
   if (btnA3) btnA3.classList.toggle("active", state.format === "A3");
@@ -2096,6 +2125,32 @@ function syncUI() {
   }
 }
 
+function initWelcomeOverlay() {
+  const overlay = document.getElementById("welcome-overlay");
+  if (!overlay || localStorage.getItem(WELCOME_DISMISSED_KEY) === "true") return;
+
+  const closeBtn = document.getElementById("welcome-close");
+  const editorBtn = document.getElementById("welcome-editor");
+  const dontShow = document.getElementById("welcome-dont-show");
+
+  const closeOverlay = () => {
+    if (dontShow?.checked) {
+      localStorage.setItem(WELCOME_DISMISSED_KEY, "true");
+    }
+    overlay.hidden = true;
+  };
+
+  overlay.hidden = false;
+  closeBtn?.addEventListener("click", closeOverlay);
+  editorBtn?.addEventListener("click", closeOverlay);
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) closeOverlay();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (!overlay.hidden && e.key === "Escape") closeOverlay();
+  });
+}
+
 // ── SKETCH ─────────────────────────────────────────────────────────────────
 
 new p5(function (p) {
@@ -2111,6 +2166,7 @@ new p5(function (p) {
     wireUI(p);
     generateCreatures(1);
     syncUI();
+    initWelcomeOverlay();
   };
 
   p.draw = function () {
@@ -2152,7 +2208,10 @@ function renderFrame(p) {
   pg.background(CANVAS_BG);
 
   for (const dog of state.creatures) {
-    if (state.effects.roundness > 0 || state.effects.blur > 0) {
+    if (
+      state.effects.pixelShape === "square" &&
+      (state.effects.roundness > 0 || state.effects.blur > 0)
+    ) {
       drawRoundedPixelCreature(pg, dog);
     } else {
       drawPixelCreature(pg, dog);
@@ -2179,10 +2238,36 @@ function darkenHex(hex, f) {
 
 const RED_ACCENT = "#CC2020";
 const EXPORT_BASENAME = "randomanimalsoftheworld";
+const ASCII_FONT_STACK = "Chakra Petch, JetBrains Mono, monospace";
+const ASCII_CHAR_POOL = "ABDEGHKMNOPRSTUVWXYZ23456890";
+const LOCAL_CREATIONS_KEY = "randomAnimals.creations";
+const AUTHOR_NAME_KEY = "randomAnimals.authorName";
+const WELCOME_DISMISSED_KEY = "randomAnimals.welcomeDismissed";
 
 function exportName(ext) {
   const suffix = state.format.toLowerCase() + (state.landscape ? "-h" : "");
   return `${EXPORT_BASENAME}-${suffix}.${ext}`;
+}
+
+function readStoredCreations() {
+  try {
+    const raw = localStorage.getItem(LOCAL_CREATIONS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (err) {
+    return [];
+  }
+}
+
+function writeStoredCreations(creations) {
+  localStorage.setItem(LOCAL_CREATIONS_KEY, JSON.stringify(creations));
+}
+
+function getAuthorName() {
+  const stored = localStorage.getItem(AUTHOR_NAME_KEY);
+  if (stored) return stored;
+  const fallback = "Anónimo";
+  localStorage.setItem(AUTHOR_NAME_KEY, fallback);
+  return fallback;
 }
 
 function shouldDitherCell(dog, px, py, cs) {
@@ -2235,11 +2320,58 @@ function cellFill(g, px, py, cs, val, color, dog = null) {
   g.fill(cellColor(val, color, dog, px, py, cs));
 }
 
-function drawCell(g, px, py, cs, val, color) {
-  g.noStroke();
-  cellFill(g, px, py, cs, val, color);
+function asciiCharForCell(val, px, py, cs) {
+  if (val === 2) return "O";
+  if (val === 3) return "M";
+  if (val === 4) return "X";
+  const chars = state.effects.asciiChars?.length
+    ? state.effects.asciiChars
+    : ["A", "M", "O", "V", "X"];
+  const idx = Math.abs(Math.floor(px / cs) * 3 + Math.floor(py / cs) * 5) % chars.length;
+  return chars[idx];
+}
 
-  // Dibujamos el bloque.
+function randomizeAsciiChars() {
+  const pool = Array.from(ASCII_CHAR_POOL);
+  const chars = [];
+  while (chars.length < 5 && pool.length) {
+    const idx = Math.floor(Math.random() * pool.length);
+    chars.push(pool.splice(idx, 1)[0]);
+  }
+  state.effects.asciiChars = chars;
+}
+
+function drawCell(g, px, py, cs, val, color, dog = null) {
+  const shape = state.effects.pixelShape || "square";
+  const fill = cellColor(val, color, dog, px, py, cs);
+  g.noStroke();
+  g.fill(fill);
+
+  if (shape === "circle") {
+    g.circle(px + cs / 2, py + cs / 2, cs * 0.96);
+    return;
+  }
+
+  if (shape === "x") {
+    g.stroke(fill);
+    g.strokeWeight(Math.max(1, cs * 0.18));
+    if (sketchP) g.strokeCap(sketchP.SQUARE);
+    const pad = cs * 0.18;
+    g.line(px + pad, py + pad, px + cs - pad, py + cs - pad);
+    g.line(px + cs - pad, py + pad, px + pad, py + cs - pad);
+    g.noStroke();
+    return;
+  }
+
+  if (shape === "ascii") {
+    g.textAlign(g.CENTER, g.CENTER);
+    g.textFont(ASCII_FONT_STACK);
+    if (sketchP) g.textStyle(sketchP.BOLD);
+    g.textSize(cs * 0.96);
+    g.text(asciiCharForCell(val, px, py, cs), px + cs / 2, py + cs * 0.52);
+    return;
+  }
+
   // cs + 1 previene líneas blancas entre píxeles al exportar.
   g.rect(px, py, cs + 1, cs + 1);
 }
@@ -2467,6 +2599,7 @@ function drawPixelCreature(g, dog) {
           cellSize,
           val,
           color,
+          dog,
         );
       }
     }
@@ -3088,6 +3221,35 @@ function wireUI(p) {
     p.loop();
   });
 
+  function wireShapeButton(id, shape) {
+    const btn = document.getElementById(id);
+    if (!btn) return;
+    btn.addEventListener("click", () => {
+      pushHistory();
+      state.effects.pixelShape =
+        state.effects.pixelShape === shape ? "square" : shape;
+      syncUI();
+      state.needsRedraw = true;
+      p.loop();
+    });
+  }
+
+  wireShapeButton("btn-shape-circle", "circle");
+  wireShapeButton("btn-shape-x", "x");
+  wireShapeButton("btn-shape-ascii", "ascii");
+
+  const btnAsciiRandom = document.getElementById("btn-ascii-random");
+  if (btnAsciiRandom) {
+    btnAsciiRandom.addEventListener("click", () => {
+      pushHistory();
+      randomizeAsciiChars();
+      state.effects.pixelShape = "ascii";
+      syncUI();
+      state.needsRedraw = true;
+      p.loop();
+    });
+  }
+
   document.getElementById("bp-orejas").addEventListener("click", () => {
     mutatePart((dna, g) => {
       // Elegimos un template de oreja al azar
@@ -3218,6 +3380,9 @@ function wireUI(p) {
   document.getElementById("btn-png").addEventListener("click", exportPNG);
   document.getElementById("btn-pdf").addEventListener("click", exportPDF);
   document.getElementById("btn-svg").addEventListener("click", exportSVG);
+  document
+    .getElementById("btn-save-creation")
+    .addEventListener("click", saveCurrentCreation);
 
   // Undo shortcut
   document.addEventListener("keydown", handleUndoShortcut);
@@ -3259,6 +3424,53 @@ function exportPNG() {
   link.click();
 }
 
+function creationPreviewDataUrl(maxW = 900) {
+  if (!pg) return "";
+  const scale = Math.min(1, maxW / pg.width);
+  const preview = document.createElement("canvas");
+  preview.width = Math.round(pg.width * scale);
+  preview.height = Math.round(pg.height * scale);
+  const ctx = preview.getContext("2d");
+  ctx.imageSmoothingEnabled = false;
+  ctx.fillStyle = CANVAS_BG;
+  ctx.fillRect(0, 0, preview.width, preview.height);
+  ctx.drawImage(pg.elt, 0, 0, preview.width, preview.height);
+  return preview.toDataURL("image/png");
+}
+
+function saveCurrentCreation() {
+  if (!pg || !state.creatures.length) return;
+  if (state.needsRedraw && sketchP) {
+    renderFrame(sketchP);
+  }
+
+  const now = new Date();
+  const creations = readStoredCreations();
+  const firstCreature = state.creatures[0];
+  const creation = {
+    id: `creation-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    title: `Criatura ${creations.length + 1}`,
+    author: getAuthorName(),
+    image: creationPreviewDataUrl(),
+    createdAt: now.toISOString(),
+    format: state.format + (state.landscape ? " horizontal" : ""),
+    species: firstCreature?.species || "creature",
+    seed: state.seed,
+    effects: JSON.parse(JSON.stringify(state.effects)),
+  };
+
+  creations.unshift(creation);
+  writeStoredCreations(creations.slice(0, 60));
+
+  const metaSave = document.getElementById("meta-save");
+  if (metaSave) {
+    metaSave.textContent = "guardada en tus creaciones";
+    window.setTimeout(() => {
+      metaSave.textContent = "";
+    }, 2200);
+  }
+}
+
 function exportPDF() {
   if (!pg || typeof jspdf === "undefined") return;
   const { jsPDF } = jspdf;
@@ -3295,6 +3507,30 @@ function svgCellColor(val, color, dog, px, py) {
   return BLACK;
 }
 
+function svgAsciiCharForCell(val, px, py, cs) {
+  return asciiCharForCell(val, px, py, cs).replace("&", "&amp;");
+}
+
+function svgPixelShapeCell(x, y, size, fill, val, dog) {
+  const shape = state.effects.pixelShape || "square";
+  if (shape === "circle") {
+    const r = dog.cellSize * 0.48;
+    return `<circle cx="${x + dog.cellSize / 2}" cy="${y + dog.cellSize / 2}" r="${r}" fill="${fill}" />`;
+  }
+  if (shape === "x") {
+    const pad = dog.cellSize * 0.18;
+    const strokeWidth = Math.max(1, dog.cellSize * 0.18);
+    return [
+      `<line x1="${x + pad}" y1="${y + pad}" x2="${x + dog.cellSize - pad}" y2="${y + dog.cellSize - pad}" stroke="${fill}" stroke-width="${strokeWidth}" stroke-linecap="square" />`,
+      `<line x1="${x + dog.cellSize - pad}" y1="${y + pad}" x2="${x + pad}" y2="${y + dog.cellSize - pad}" stroke="${fill}" stroke-width="${strokeWidth}" stroke-linecap="square" />`,
+    ].join("\n");
+  }
+  if (shape === "ascii") {
+    return `<text x="${x + dog.cellSize / 2}" y="${y + dog.cellSize * 0.52}" fill="${fill}" font-family="'Chakra Petch', 'JetBrains Mono', monospace" font-size="${dog.cellSize * 0.96}" font-weight="700" text-anchor="middle" dominant-baseline="middle">${svgAsciiCharForCell(val, x, y, dog.cellSize)}</text>`;
+  }
+  return `<rect x="${x}" y="${y}" width="${size}" height="${size}" fill="${fill}" />`;
+}
+
 function svgCreatureParts(dog, creatureIndex) {
   const { grid, cellSize, startX, startY, color } = dog;
   const roundness = state.effects.roundness;
@@ -3302,7 +3538,7 @@ function svgCreatureParts(dog, creatureIndex) {
   const size = cellSize + 1;
   const parts = [];
 
-  if (roundness <= 0) {
+  if (roundness <= 0 || state.effects.pixelShape !== "square") {
     for (let r = 0; r < grid.length; r++) {
       for (let c = 0; c < grid[r].length; c++) {
         const val = grid[r][c];
@@ -3310,9 +3546,7 @@ function svgCreatureParts(dog, creatureIndex) {
         const x = startX + c * cellSize;
         const y = startY + r * cellSize;
         const fill = svgCellColor(val, color, dog, x, y);
-        parts.push(
-          `<rect x="${x}" y="${y}" width="${size}" height="${size}" fill="${fill}" />`,
-        );
+        parts.push(svgPixelShapeCell(x, y, size, fill, val, dog));
       }
     }
     return parts.join("\n");

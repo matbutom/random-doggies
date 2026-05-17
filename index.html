@@ -8,11 +8,44 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@700&family=JetBrains+Mono:wght@400;700&display=swap"
       rel="stylesheet"
     />
   </head>
   <body>
+    <div class="welcome-overlay" id="welcome-overlay" hidden>
+      <section
+        class="welcome-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="welcome-title"
+      >
+        <button
+          class="welcome-close"
+          id="welcome-close"
+          type="button"
+          aria-label="Cerrar"
+        >
+          ×
+        </button>
+        <h1 id="welcome-title">random animals of the world :)</h1>
+        <p>
+          Crea criaturas inesperadas, juega con sus cuerpos, colores, píxeles y
+          efectos, guarda tus favoritas y compártelas en la galería :) <3
+        </p>
+        <div class="welcome-actions">
+          <a class="btn" href="gallery.html">[ ver galería ]</a>
+          <button class="btn" id="welcome-editor" type="button">
+            [ ir al editor ]
+          </button>
+        </div>
+        <label class="welcome-skip">
+          <input id="welcome-dont-show" type="checkbox" />
+          no mostrar de nuevo
+        </label>
+      </section>
+    </div>
+
     <div class="app">
       <aside class="sidebar">
         <div class="sidebar-title">RANDOM ANIMALS<br />OF THE WORLD :)</div>
@@ -23,14 +56,6 @@
             <button class="btn" id="btn-dogs">[ randomize ]</button>
             <button class="btn" id="btn-undo">[ undo ]</button>
             <div class="section-meta" id="meta-dogs">× 1 dog</div>
-          </div>
-
-          <div class="section">
-            <div class="section-label">EFECTOS</div>
-            <button class="btn btn-effect" id="btn-recolor">
-              [ nuevo color ]
-            </button>
-            <button class="btn btn-effect" id="btn-dither">[ dithered ]</button>
 
             <div class="slider-row" style="margin-top: 16px">
               <div class="section-label" style="margin-bottom: 0">
@@ -58,7 +83,25 @@
                 step="1"
                 value="0"
               />
-            </div> 
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="section-label">EFECTOS</div>
+            <button class="btn btn-effect" id="btn-recolor">
+              [ nuevo color ]
+            </button>
+            <button class="btn btn-effect" id="btn-dither">[ dithered ]</button>
+            <button class="btn btn-effect" id="btn-shape-circle">
+              [ pixels redondos ]
+            </button>
+            <button class="btn btn-effect" id="btn-shape-x">[ pixels X ]</button>
+            <button class="btn btn-effect" id="btn-shape-ascii">
+              [ ascii ]
+            </button>
+            <button class="btn btn-effect" id="btn-ascii-random">
+              [ random ascii ]
+            </button>
           </div>
 
           <div class="section">
@@ -106,6 +149,11 @@
           <button class="btn btn-export" id="btn-png">[ export PNG ]</button>
           <button class="btn btn-export" id="btn-pdf">[ export PDF ]</button>
           <button class="btn btn-export" id="btn-svg">[ export SVG ]</button>
+          <button class="btn btn-export" id="btn-save-creation">
+            [ guardar creación ]
+          </button>
+          <a class="btn btn-export" href="gallery.html">[ ver galería ]</a>
+          <div class="section-meta" id="meta-save"></div>
         </div>
       </aside>
 

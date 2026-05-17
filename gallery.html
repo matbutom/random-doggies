@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>random animals gallery :)</title>
+    <link rel="stylesheet" href="gallery.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@700&family=JetBrains+Mono:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="gallery-shell">
+      <header class="gallery-header">
+        <div>
+          <h1>CREATURE GALLERY :)</h1>
+        </div>
+        <nav class="gallery-nav" aria-label="Gallery views">
+          <button class="tab-btn active" type="button" data-tab="public">
+            [ galería ]
+          </button>
+          <button class="tab-btn" type="button" data-tab="personal">
+            [ mis creaciones ]
+          </button>
+          <a class="tab-btn" href="index.html">[ crear ]</a>
+        </nav>
+      </header>
+
+      <main>
+        <section class="tab-panel active" id="panel-public">
+          <div class="animal-grid public-grid" id="public-creations"></div>
+        </section>
+
+        <section class="tab-panel" id="panel-personal">
+          <div class="personal-bar">
+            <label>
+              AUTOR
+              <input
+                id="author-name"
+                type="text"
+                maxlength="32"
+                placeholder="tu nombre"
+              />
+            </label>
+            <button class="btn" id="btn-update-author" type="button">
+              [ actualizar autor ]
+            </button>
+          </div>
+          <div class="animal-grid personal-grid" id="local-creations"></div>
+        </section>
+      </main>
+    </div>
+
+    <template id="creation-card-template">
+      <article class="creation-card">
+        <img alt="" />
+        <p></p>
+        <div class="card-actions"></div>
+      </article>
+    </template>
+
+    <script src="gallery.js"></script>
+  </body>
+</html>
